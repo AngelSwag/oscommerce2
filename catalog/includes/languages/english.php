@@ -179,8 +179,8 @@ define('PREVNEXT_TITLE_PAGE_NO', 'Page %d');
 define('PREVNEXT_TITLE_PREV_SET_OF_NO_PAGE', 'Previous Set of %d Pages');
 define('PREVNEXT_TITLE_NEXT_SET_OF_NO_PAGE', 'Next Set of %d Pages');
 define('PREVNEXT_BUTTON_FIRST', '&lt;&lt;FIRST');
-define('PREVNEXT_BUTTON_PREV', '[&lt;&lt;&nbsp;Prev]');
-define('PREVNEXT_BUTTON_NEXT', '[Next&nbsp;&gt;&gt;]');
+define('PREVNEXT_BUTTON_PREV', '<i class="icon-left-thin"></i>');
+define('PREVNEXT_BUTTON_NEXT', '<i class="icon-right-thin"></i>');
 define('PREVNEXT_BUTTON_LAST', 'LAST&gt;&gt;');
 
 define('IMAGE_BUTTON_ADD_ADDRESS', 'Add Address');
@@ -246,4 +246,9 @@ define('TEXT_CCVAL_ERROR_INVALID_NUMBER', 'The credit card number entered is inv
 define('TEXT_CCVAL_ERROR_UNKNOWN_CARD', 'The first four digits of the number entered are: %s. If that number is correct, we do not accept that type of credit card. If it is wrong, please try again.');
 
 define('FOOTER_TEXT_BODY', 'Copyright &copy; ' . date('Y') . ' <a href="' . tep_href_link(FILENAME_DEFAULT) . '">' . STORE_NAME . '</a><br />Powered by <a href="http://www.oscommerce.com" target="_blank">osCommerce</a>');
+// BOF Attribute Product Codes V1.2
+define('TEXT_CODE_SEPARATOR1', '/');
+define('TEXT_CODE_SEPARATOR2', '-');
+// EOF Attribute Product Codes V1.2
+require(DIR_WS_LANGUAGES . 'add_ccgvdc_english.php');  // CCGV
 ?>

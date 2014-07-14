@@ -16,7 +16,7 @@
     function sage_pay_direct() {
       global $HTTP_GET_VARS, $PHP_SELF, $order;
 
-      $this->signature = 'sage_pay|sage_pay_direct|3.1|2.3';
+      $this->signature = 'sage_pay|sage_pay_direct|3.0|2.3';
       $this->api_version = '3.00';
 
       $this->code = 'sage_pay_direct';
@@ -56,7 +56,7 @@
         }
       }
 
-      if ( defined('FILENAME_MODULES') && (basename($PHP_SELF) == FILENAME_MODULES) && isset($HTTP_GET_VARS['action']) && ($HTTP_GET_VARS['action'] == 'install') && isset($HTTP_GET_VARS['subaction']) && ($HTTP_GET_VARS['subaction'] == 'conntest') ) {
+      if ( defined('FILENAME_MODULES') && ($PHP_SELF == FILENAME_MODULES) && isset($HTTP_GET_VARS['action']) && ($HTTP_GET_VARS['action'] == 'install') && isset($HTTP_GET_VARS['subaction']) && ($HTTP_GET_VARS['subaction'] == 'conntest') ) {
         echo $this->getTestConnectionResult();
         exit;
       }
@@ -1092,16 +1092,8 @@ EOD;
       $test_url = tep_href_link(FILENAME_MODULES, 'set=payment&module=' . $this->code . '&action=install&subaction=conntest');
 
       $js = <<<EOD
-<script>
-if ( typeof jQuery == 'undefined' ) {
-  document.write('<scr' + 'ipt src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></scr' + 'ipt>');
-  document.write('<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/redmond/jquery-ui.css" />');
-  document.write('<scr' + 'ipt src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></scr' + 'ipt>');
-}
-</script>
-
-<script>
-(function() {
+<script type="text/javascript">
+$(function() {
   $('#tcdprogressbar').progressbar({
     value: false
   });
@@ -1195,13 +1187,7 @@ EOD;
 
     function getSubmitCardDetailsJavascript() {
       $js = <<<EOD
-<script>
-if ( typeof jQuery == 'undefined' ) {
-  document.write('<scr' + 'ipt src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></scr' + 'ipt>');
-}
-</script>
-
-<script>
+<script type="text/javascript">
 $(function() {
   if ( $('#sagepay_table').length > 0 ) {
     if ( typeof($('#sagepay_table').parent().closest('table').attr('width')) == 'undefined' ) {

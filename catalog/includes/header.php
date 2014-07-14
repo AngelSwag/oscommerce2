@@ -11,33 +11,56 @@
 */
 
   if ($messageStack->size('header') > 0) {
-    echo '<div class="grid_24">' . $messageStack->output('header') . '</div>';
+    echo '<div>' . $messageStack->output('header') . '</div>';
   }
 ?>
 
-<div id="header" class="grid_24">
-  <div id="storeLogo"><?php echo '<a href="' . tep_href_link(FILENAME_DEFAULT) . '">' . tep_image(DIR_WS_IMAGES . 'store_logo.png', STORE_NAME) . '</a>'; ?></div>
+<!--RIGHT TOOLBAR-->
+<?php include(DC_BLOCKS . 'megastore_right_toolbar.php');?>
+<!-- TOP LINE BLOCKS-->
+<?php include(DC_BLOCKS . 'megastore_topline.php');?>
 
-  <div id="headerShortcuts">
-<?php
-  echo tep_draw_button(HEADER_TITLE_CART_CONTENTS . ($cart->count_contents() > 0 ? ' (' . $cart->count_contents() . ')' : ''), 'cart', tep_href_link(FILENAME_SHOPPING_CART)) .
-       tep_draw_button(HEADER_TITLE_CHECKOUT, 'triangle-1-e', tep_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL')) .
-       tep_draw_button(HEADER_TITLE_MY_ACCOUNT, 'person', tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
 
-  if (tep_session_is_registered('customer_id')) {
-    echo tep_draw_button(HEADER_TITLE_LOGOFF, null, tep_href_link(FILENAME_LOGOFF, '', 'SSL'));
-  }
-?>
-  </div>
+<div id="header">
+    <div class="container">
 
-<script type="text/javascript">
-  $("#headerShortcuts").buttonset();
-</script>
+        <div class="wrapper_w">
+            <div id="logo">
+                <div id="storeLogo">
+                    <?php echo '<a href="' . tep_href_link(FILENAME_DEFAULT) . '">' . tep_image(DIR_WS_IMAGES .BUYSHOP_THEME. '/store_logo.png', STORE_NAME,'','','style="width:253px;height:66px"') . '</a>'; ?>
+                </div>
+            </div>
+
+            <div class="pull-right padding-1 shopping_cart_top">
+                <?php include(DC_BLOCKS . 'megastore_top_cart.php');?>
+            </div>
+
+            <?php include(DC_BLOCKS . 'megastore_search.php');?>
+
+        </div>
+
+        <!-- navigation menu -->
+        <div class="row">
+            <div class="span12">
+
+                <nav>
+                    <!-- small menu -->
+                    <?php include(DC_BLOCKS . 'megastore_small_categories.php'); ?>
+                    <!-- small menu -->
+
+                    <!-- big menu -->
+                    <?php include(DC_BLOCKS . 'megastore_main_categories.php'); ?>
+                    <!-- big menu -->
+                </nav>
+
+            </div>
+        </div>
+        <!-- navigation menu -->
+
+
+    </div>
 </div>
 
-<div class="grid_24 ui-widget infoBoxContainer">
-  <div class="ui-widget-header infoBoxHeading"><?php echo '&nbsp;&nbsp;' . $breadcrumb->trail(' &raquo; '); ?></div>
-</div>
 
 <?php
   if (isset($HTTP_GET_VARS['error_message']) && tep_not_null($HTTP_GET_VARS['error_message'])) {

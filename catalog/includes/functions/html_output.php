@@ -9,67 +9,75 @@
 
   Released under the GNU General Public License
 */
-
+/**
+  * ULTIMATE Seo Urls 5 PRO by FWR Media
+  * Replacement for osCommerce href link wrapper function
+  */
+  require_once DIR_WS_MODULES . 'ultimate_seo_urls5/main/usu5.php';
+  
+  function tep_href_link( $page = '', $parameters = '', $connection = 'NONSSL', $add_session_id = true, $search_engine_safe = true ) {
+    return Usu_Main::i()->hrefLink( $page, $parameters, $connection, $add_session_id, $search_engine_safe );
+  }
 ////
 // The HTML href link wrapper function
-  function tep_href_link($page = '', $parameters = '', $connection = 'NONSSL', $add_session_id = true, $search_engine_safe = true) {
-    global $request_type, $session_started, $SID;
+  // function tep_href_link($page = '', $parameters = '', $connection = 'NONSSL', $add_session_id = true, $search_engine_safe = true) {
+    // global $request_type, $session_started, $SID;
 
-    $page = tep_output_string($page);
+    // $page = tep_output_string($page);
 
-    if (!tep_not_null($page)) {
-      die('</td></tr></table></td></tr></table><br /><br /><font color="#ff0000"><strong>Error!</strong></font><br /><br /><strong>Unable to determine the page link!<br /><br />');
-    }
+    // if (!tep_not_null($page)) {
+      // die('</td></tr></table></td></tr></table><br /><br /><font color="#ff0000"><strong>Error!</strong></font><br /><br /><strong>Unable to determine the page link!<br /><br />');
+    // }
 
-    if ($connection == 'NONSSL') {
-      $link = HTTP_SERVER . DIR_WS_HTTP_CATALOG;
-    } elseif ($connection == 'SSL') {
-      if (ENABLE_SSL == true) {
-        $link = HTTPS_SERVER . DIR_WS_HTTPS_CATALOG;
-      } else {
-        $link = HTTP_SERVER . DIR_WS_HTTP_CATALOG;
-      }
-    } else {
-      die('</td></tr></table></td></tr></table><br /><br /><font color="#ff0000"><strong>Error!</strong></font><br /><br /><strong>Unable to determine connection method on a link!<br /><br />Known methods: NONSSL SSL</strong><br /><br />');
-    }
+    // if ($connection == 'NONSSL') {
+      // $link = HTTP_SERVER . DIR_WS_HTTP_CATALOG;
+    // } elseif ($connection == 'SSL') {
+      // if (ENABLE_SSL == true) {
+        // $link = HTTPS_SERVER . DIR_WS_HTTPS_CATALOG;
+      // } else {
+        // $link = HTTP_SERVER . DIR_WS_HTTP_CATALOG;
+      // }
+    // } else {
+      // die('</td></tr></table></td></tr></table><br /><br /><font color="#ff0000"><strong>Error!</strong></font><br /><br /><strong>Unable to determine connection method on a link!<br /><br />Known methods: NONSSL SSL</strong><br /><br />');
+    // }
 
-    if (tep_not_null($parameters)) {
-      $link .= $page . '?' . tep_output_string($parameters);
-      $separator = '&';
-    } else {
-      $link .= $page;
-      $separator = '?';
-    }
+    // if (tep_not_null($parameters)) {
+      // $link .= $page . '?' . tep_output_string($parameters);
+      // $separator = '&';
+    // } else {
+      // $link .= $page;
+      // $separator = '?';
+    // }
 
-    while ( (substr($link, -1) == '&') || (substr($link, -1) == '?') ) $link = substr($link, 0, -1);
+    // while ( (substr($link, -1) == '&') || (substr($link, -1) == '?') ) $link = substr($link, 0, -1);
 
-// Add the session ID when moving from different HTTP and HTTPS servers, or when SID is defined
-    if ( ($add_session_id == true) && ($session_started == true) && (SESSION_FORCE_COOKIE_USE == 'False') ) {
-      if (tep_not_null($SID)) {
-        $_sid = $SID;
-      } elseif ( ( ($request_type == 'NONSSL') && ($connection == 'SSL') && (ENABLE_SSL == true) ) || ( ($request_type == 'SSL') && ($connection == 'NONSSL') ) ) {
-        if (HTTP_COOKIE_DOMAIN != HTTPS_COOKIE_DOMAIN) {
-          $_sid = tep_session_name() . '=' . tep_session_id();
-        }
-      }
-    }
+////Add the session ID when moving from different HTTP and HTTPS servers, or when SID is defined
+    // if ( ($add_session_id == true) && ($session_started == true) && (SESSION_FORCE_COOKIE_USE == 'False') ) {
+      // if (tep_not_null($SID)) {
+        // $_sid = $SID;
+      // } elseif ( ( ($request_type == 'NONSSL') && ($connection == 'SSL') && (ENABLE_SSL == true) ) || ( ($request_type == 'SSL') && ($connection == 'NONSSL') ) ) {
+        // if (HTTP_COOKIE_DOMAIN != HTTPS_COOKIE_DOMAIN) {
+          // $_sid = tep_session_name() . '=' . tep_session_id();
+        // }
+      // }
+    // }
 
-    if (isset($_sid)) {
-      $link .= $separator . tep_output_string($_sid);
-    }
+    // if (isset($_sid)) {
+      // $link .= $separator . tep_output_string($_sid);
+    // }
 
-    while (strstr($link, '&&')) $link = str_replace('&&', '&', $link);
+    // while (strstr($link, '&&')) $link = str_replace('&&', '&', $link);
 
-    if ( (SEARCH_ENGINE_FRIENDLY_URLS == 'true') && ($search_engine_safe == true) ) {
-      $link = str_replace('?', '/', $link);
-      $link = str_replace('&', '/', $link);
-      $link = str_replace('=', '/', $link);
-    } else {
-      $link = str_replace('&', '&amp;', $link);
-    }
+    // if ( (SEARCH_ENGINE_FRIENDLY_URLS == 'true') && ($search_engine_safe == true) ) {
+      // $link = str_replace('?', '/', $link);
+      // $link = str_replace('&', '/', $link);
+      // $link = str_replace('=', '/', $link);
+    // } else {
+      // $link = str_replace('&', '&amp;', $link);
+    // }
 
-    return $link;
-  }
+    // return $link;
+  // }
 
 ////
 // The HTML image wrapper function
@@ -358,23 +366,23 @@
       $priority = 'secondary';
     }
 
-    $button = '<span class="tdbLink">';
+    $button = '';
 
     if ( ($params['type'] == 'button') && isset($link) ) {
-      $button .= '<a id="tdb' . $button_counter . '" href="' . $link . '"';
+      $button .= '<a class="custom_submit" href="' . $link . '"';
 
       if ( isset($params['newwindow']) ) {
         $button .= ' target="_blank"';
       }
     } else {
-      $button .= '<button id="tdb' . $button_counter . '" type="' . tep_output_string($params['type']) . '"';
+      $button .= '<button class="custom_submit_button" type="' . tep_output_string($params['type']) . '"';
     }
 
     if ( isset($params['params']) ) {
       $button .= ' ' . $params['params'];
     }
 
-    $button .= '>' . $title;
+    $button .= '><i class="icon-basket"></i>' . $title;
 
     if ( ($params['type'] == 'button') && isset($link) ) {
       $button .= '</a>';
@@ -382,31 +390,8 @@
       $button .= '</button>';
     }
 
-    $button .= '</span><script type="text/javascript">$("#tdb' . $button_counter . '").button(';
+    $button .= '';
 
-    $args = array();
-
-    if ( isset($icon) ) {
-      if ( !isset($params['iconpos']) ) {
-        $params['iconpos'] = 'left';
-      }
-
-      if ( $params['iconpos'] == 'left' ) {
-        $args[] = 'icons:{primary:"ui-icon-' . $icon . '"}';
-      } else {
-        $args[] = 'icons:{secondary:"ui-icon-' . $icon . '"}';
-      }
-    }
-
-    if (empty($title)) {
-      $args[] = 'text:false';
-    }
-
-    if (!empty($args)) {
-      $button .= '{' . implode(',', $args) . '}';
-    }
-
-    $button .= ').addClass("ui-priority-' . $priority . '").parent().removeClass("tdbLink");</script>';
 
     $button_counter++;
 

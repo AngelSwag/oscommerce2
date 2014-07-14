@@ -18,7 +18,10 @@
     }
 
     function restore_contents() {
-      global $customer_id;
+	  //CCGV
+	  //global $customer_id;
+      global $customer_id, $gv_id, $REMOTE_ADDR;
+      
 
       if (!tep_session_is_registered('customer_id')) return false;
 
@@ -40,6 +43,15 @@
             tep_db_query("update " . TABLE_CUSTOMERS_BASKET . " set customers_basket_quantity = '" . tep_db_input($qty) . "' where customers_id = '" . (int)$customer_id . "' and products_id = '" . tep_db_input($products_id) . "'");
           }
         }
+		
+//ADDED FOR CCGV - START
+        if (tep_session_is_registered('gv_id')) {
+          $gv_query = tep_db_query("insert into  " . TABLE_COUPON_REDEEM_TRACK . " (coupon_id, customer_id, redeem_date, redeem_ip) values ('" . $gv_id . "', '" . (int)$customer_id . "', now(),'" . $REMOTE_ADDR . "')");
+          $gv_update = tep_db_query("update " . TABLE_COUPONS . " set coupon_active = 'N' where coupon_id = '" . $gv_id . "'");
+          tep_gv_account_update($customer_id, $gv_id);
+          tep_session_unregister('gv_id');
+        }
+//ADDED FOR CCGV - END
       }
 
 // reset per-session cart contents, but not the database contents
@@ -261,7 +273,8 @@
     function calculate() {
       global $currencies;
 
-      $this->total = 0;
+      $this->total_virtual = 0; // CCGV
+	  $this->total = 0;
       $this->weight = 0;
       if (!is_array($this->contents)) return 0;
 
@@ -272,6 +285,16 @@
 // products price
         $product_query = tep_db_query("select products_id, products_price, products_tax_class_id, products_weight from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'");
         if ($product = tep_db_fetch_array($product_query)) {
+		
+// CCGV ADDED - START
+          $no_count = 1;
+          $gv_query = tep_db_query("select products_model from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'");
+          $gv_result = tep_db_fetch_array($gv_query);
+          if (preg_match('/^GIFT/', $gv_result['products_model'])) {
+            $no_count = 0;
+          }
+// CCGV ADDED - END
+
           $prid = $product['products_id'];
           $products_tax = tep_get_tax_rate($product['products_tax_class_id']);
           $products_price = $product['products_price'];
@@ -283,6 +306,10 @@
             $products_price = $specials['specials_new_products_price'];
           }
 
+          // the tep_add_tax MUST NOT be changed to $currencies->calculate price
+          $this->total_virtual += tep_add_tax($products_price, $products_tax) * $qty * $no_count;// CCGV
+          $this->weight_virtual += ($qty * $products_weight) * $no_count;// CCGV
+		  
           $this->total += $currencies->calculate_price($products_price, $products_tax, $qty);
           $this->weight += ($qty * $products_weight);
         }
@@ -341,9 +368,37 @@
             $products_price = $specials['specials_new_products_price'];
           }
 
+// BOF Attribute Product Codes V1.2
+          $attribute_code_array = array();
+// http://forums.oscommerce.com/topic/251032-attribute-product-codes-contribution/page__view__findpost__p__1212928
+        if (is_array($this->contents[$products_id]['attributes'])) {
+			while (list($option, $value) = each($this->contents[$products_id]['attributes'])) {
+			  $attribute_code_query = tep_db_query("select code_suffix, suffix_sort_order from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int)$prid . "' and options_id = '" . (int)$option . "' and options_values_id = '" . (int)$value . "'");
+			  $attribute_code = tep_db_fetch_array($attribute_code_query);
+			  if (tep_not_null($attribute_code['code_suffix'])) {
+				$attribute_code_array[(int)$attribute_code['suffix_sort_order']] = $attribute_code['code_suffix'];
+			  }
+			}
+			$separator = '';
+			if (count($attribute_code_array) > 1) {
+			  $separator = TEXT_CODE_SEPARATOR2;
+			} elseif (count($attribute_code_array) == 1) {
+			  $separator = TEXT_CODE_SEPARATOR1;
+			}
+				   
+			ksort($attribute_code_array);
+			$products_code = $products['products_model'] . TEXT_CODE_SEPARATOR1 . implode($separator, $attribute_code_array);
+		} else {
+			$products_code = $products['products_model'];
+		}
+// EOF Attribute Product Codes V1.2		 
+		  
           $products_array[] = array('id' => $products_id,
                                     'name' => $products['products_name'],
                                     'model' => $products['products_model'],
+// BOF Attribute Product Codes V1.2
+									'code' => $products_code,
+// EOF Attribute Product Codes V1.2
                                     'image' => $products['products_image'],
                                     'price' => $products_price,
                                     'quantity' => $this->contents[$products_id]['qty'],
@@ -384,6 +439,7 @@
             while (list(, $value) = each($this->contents[$products_id]['attributes'])) {
               $virtual_check_query = tep_db_query("select count(*) as total from " . TABLE_PRODUCTS_ATTRIBUTES . " pa, " . TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD . " pad where pa.products_id = '" . (int)$products_id . "' and pa.options_values_id = '" . (int)$value . "' and pa.products_attributes_id = pad.products_attributes_id");
               $virtual_check = tep_db_fetch_array($virtual_check_query);
+			  
 
               if ($virtual_check['total'] > 0) {
                 switch ($this->content_type) {
@@ -394,6 +450,56 @@
                     break;
                   default:
                     $this->content_type = 'virtual';
+                    break;
+                }
+              } else {
+				
+			  
+// CCGV ADDED - BEGIN
+				if ($this->show_weight() == 0) {
+					$wvirtual_check_query = tep_db_query("select products_weight from " . TABLE_PRODUCTS . " where products_id = '" . $products_id . "'");
+					$wvirtual_check = tep_db_fetch_array($wvirtual_check_query);
+
+					if ($wvirtual_check['products_weight'] == 0) {
+						switch ($this->content_type) {
+							case 'physical':
+								$this->content_type = 'mixed';
+								return $this->content_type;
+								break;
+							default:
+								$this->content_type = 'virtual_weight';
+								break;
+					}
+
+					} else {
+						switch ($this->content_type) {
+							case 'virtual':
+								$this->content_type = 'mixed';
+								return $this->content_type;
+								break;
+							default:
+								$this->content_type = 'physical';
+								break;
+						}
+					}
+				}
+              }
+            }
+		  
+      } elseif ($this->show_weight() == 0) {
+            reset($this->contents);
+            while (list($products_id, ) = each($this->contents)) {
+              $virtual_check_query = tep_db_query("select products_weight from " . TABLE_PRODUCTS . " where products_id = '" . $products_id . "'");
+              $virtual_check = tep_db_fetch_array($virtual_check_query);
+              if ($virtual_check['products_weight'] == 0) {
+                switch ($this->content_type) {
+                  case 'physical':
+                    $this->content_type = 'mixed';
+
+                    return $this->content_type;
+                    break;
+                  default:
+                    $this->content_type = 'virtual_weight';
                     break;
                 }
               } else {
@@ -409,6 +515,7 @@
                 }
               }
             }
+// CCGV ADDED - END
           } else {
             switch ($this->content_type) {
               case 'virtual':
@@ -436,6 +543,33 @@
         $this->$key=$kv['value'];
       }
     }
+	
+// CCGV ADDED - START
+
+    function count_contents_virtual() {  // get total number of items in cart disregard gift vouchers
+      $total_items = 0;
+      if (is_array($this->contents)) {
+        reset($this->contents);
+        while (list($products_id, ) = each($this->contents)) {
+          $no_count = false;
+          $gv_query = tep_db_query("select products_model from " . TABLE_PRODUCTS . " where products_id = '" . $products_id . "'");
+          $gv_result = tep_db_fetch_array($gv_query);
+          if (preg_match('/^GIFT/', $gv_result['products_model'])) {
+            $no_count=true;
+          }
+          if (NO_COUNT_ZERO_WEIGHT == 1) {
+            $gv_query = tep_db_query("select products_weight from " . TABLE_PRODUCTS . " where products_id = '" . tep_get_prid($products_id) . "'");
+            $gv_result=tep_db_fetch_array($gv_query);
+            if ($gv_result['products_weight']<=MINIMUM_WEIGHT) {
+              $no_count=true;
+            }
+          }
+          if (!$no_count) $total_items += $this->get_quantity($products_id);
+        }
+      }
+      return $total_items;
+    }
+// CCGV ADDED - END
 
   }
 ?>

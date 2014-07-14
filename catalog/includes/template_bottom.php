@@ -11,33 +11,57 @@
 */
 ?>
 
-</div> <!-- bodyContent //-->
 
 <?php
   if ($oscTemplate->hasBlocks('boxes_column_left')) {
+
+      if (!$product_page_url && !$main_page_url){
 ?>
 
-<div id="columnLeft" class="grid_<?php echo $oscTemplate->getGridColumnWidth(); ?> pull_<?php echo $oscTemplate->getGridContentWidth(); ?>">
-  <?php echo $oscTemplate->getBlocks('boxes_column_left'); ?>
 </div>
 
-<?php
-  }
-
-  if ($oscTemplate->hasBlocks('boxes_column_right')) {
-?>
-
-<div id="columnRight" class="grid_<?php echo $oscTemplate->getGridColumnWidth(); ?>">
-  <?php echo $oscTemplate->getBlocks('boxes_column_right'); ?>
+<!-- sidebar enable / disable -->
+<?php if (SIDEBAR_STATUS !== 'disable') { ?>
+<div id="column_left" class="span3">
+    <div class="row">
+        <div class="span3">
+            <?php echo $oscTemplate->getBlocks('boxes_column_left'); ?>
+        </div>
+    </div>
 </div>
+      <?php } ?>
 
-<?php
+      <!-- sidebar enable / disable -->
+
+
+
+      <?php
+
+    }
   }
 ?>
+
+
+<!-- blocks for all pages-->
+<?php if (!$main_page_url) { ?>
+            </div>
+         </div>
+<?php } ?>
+    <!-- end blocks for all pages-->
+
+
+
+
+    </section>
+<div id="push"></div>
+
+</div>
+<!-- end wrap //-->
 
 <?php require(DIR_WS_INCLUDES . 'footer.php'); ?>
 
-</div> <!-- bodyWrapper //-->
+
+<!-- bodyWrapper //-->
 
 <?php echo $oscTemplate->getBlocks('footer_scripts'); ?>
 

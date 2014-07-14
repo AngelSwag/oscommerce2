@@ -101,11 +101,16 @@
           }
         }
 
-        $js .= "\n" . '  if (payment_value == null) {' . "\n" .
+		// CCGV
+        //$js .= "\n" . '  if (payment_value == null) {' . "\n" .
+        $js .= "\n" . '  if (payment_value == null && submitter != 1) {' . "\n" . // This line edited for CCGV
                '    error_message = error_message + "' . JS_ERROR_NO_PAYMENT_MODULE_SELECTED . '";' . "\n" .
                '    error = 1;' . "\n" .
                '  }' . "\n\n" .
-               '  if (error == 1) {' . "\n" .
+			   // CCGV
+               //'  if (error == 1) {' . "\n" .
+               '  if (error == 1 && submitter != 1) {' . "\n" . // This line edited for CCGV
+
                '    alert(error_message);' . "\n" .
                '    return false;' . "\n" .
                '  } else {' . "\n" .
@@ -152,9 +157,19 @@
     }
 
     function pre_confirmation_check() {
+	  global $credit_covers, $payment_modules; // CCGV
       if (is_array($this->modules)) {
         if (is_object($GLOBALS[$this->selected_module]) && ($GLOBALS[$this->selected_module]->enabled) ) {
-          $GLOBALS[$this->selected_module]->pre_confirmation_check();
+		
+// ADDED FOR CCGV
+          if ($credit_covers) {
+            $GLOBALS[$this->selected_module]->enabled = false;
+            $GLOBALS[$this->selected_module] = NULL;
+            $payment_modules = '';
+          } else {
+// END ADDED FOR CCGV
+            $GLOBALS[$this->selected_module]->pre_confirmation_check();
+		  }// CCGV
         }
       }
     }
@@ -198,5 +213,12 @@
         }
       }
     }
+//ADDED FOR CCGV
+ // check credit covers was setup to test whether credit covers is set in other parts of the code
+    function check_credit_covers() {
+	  global $credit_covers;
+	  return $credit_covers;
+    }
+// END ADDED FOR CCGV
   }
 ?>

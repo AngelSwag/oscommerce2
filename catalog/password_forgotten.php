@@ -82,13 +82,14 @@
 <div class="contentContainer">
   <div class="contentText">
     <div><?php echo TEXT_MAIN; ?></div>
-
-    <table border="0" width="100%" cellspacing="0" cellpadding="2">
-      <tr>
-        <td class="fieldKey"><?php echo ENTRY_EMAIL_ADDRESS; ?></td>
-        <td class="fieldValue"><?php echo tep_draw_input_field('email_address'); ?></td>
-      </tr>
-    </table>
+      <div class="password_forgotten">
+        <table border="0" width="100%" cellspacing="0" cellpadding="2">
+          <tr>
+            <td class="fieldKey"><?php echo ENTRY_EMAIL_ADDRESS; ?></td>
+            <td class="fieldValue"><?php echo tep_draw_input_field('email_address'); ?></td>
+          </tr>
+        </table>
+  </div>
   </div>
 
   <div class="buttonSet">

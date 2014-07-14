@@ -175,7 +175,7 @@
     }
   }
 
-  $select_str = "select distinct " . $select_column_list . " m.manufacturers_id, p.products_id, pd.products_name, p.products_price, p.products_tax_class_id, IF(s.status, s.specials_new_products_price, NULL) as specials_new_products_price, IF(s.status, s.specials_new_products_price, p.products_price) as final_price ";
+  $select_str = "select distinct " . $select_column_list . " m.manufacturers_id, p.products_id, pd.products_name, p.products_price, p.products_tax_class_id, p.products_date_available, IF(s.status, s.specials_new_products_price, NULL) as specials_new_products_price, IF(s.status, s.specials_new_products_price, p.products_price) as final_price ";
 
   if ( (DISPLAY_PRICE_WITH_TAX == 'true') && (tep_not_null($pfrom) || tep_not_null($pto)) ) {
     $select_str .= ", SUM(tr.tax_rate) as tax_rate ";
@@ -309,6 +309,41 @@
   }
 
   $listing_sql = $select_str . $from_str . $where_str . $order_str;
+
+    // MOD: BOF - SmartSuggest BEGIN
+  if (SMARTSUGGEST_ENABLED == 'true' && SMARTSUGGEST_RECORD_KEYWORDS == 'true') {
+    if (isset($_GET['keywords'])) {
+	  if (!isset($_GET['page'])) $_GET['page'] = '1';
+	  $searched_keywords_query = tep_db_query("select searched_keywords_id, pages
+                                               from " . TABLE_SEARCHED_KEYWORDS . "
+                                               where ip = '" . tep_db_input(tep_get_ip_address()) . "'
+                                                 and keywords = '" . tep_db_input($_GET['keywords']) . "'
+                                                 and date_added > '" . date('Y-m-d H:i:s', strtotime('-30 minutes')) . "'
+                                               order by date_added desc");
+      if ($searched_keywords = tep_db_fetch_array($searched_keywords_query)) {
+        $pages = explode(',', $searched_keywords['pages']);
+        if ($_GET['page'] != $pages[count($pages) - 1]) // only update if not the last visited page
+          tep_db_perform('searched_keywords', array('pages' => $searched_keywords['pages'] . ',' . (int)$_GET['page']), 'update', "searched_keywords_id = '" . (int)$searched_keywords['searched_keywords_id'] . "'");
+      } else {
+        $input = array('keywords' => tep_db_prepare_input(tep_db_input($_GET['keywords'])),
+                       'number_of_results' => (int)tep_db_num_rows(tep_db_query($listing_sql)),
+                       'date_added' => date('Y-m-d H:i:s'),
+                       'ip' => tep_get_ip_address(),
+                       'pages' => (int)$_GET['page']);
+        if ($customer_id) $input['customers_id'] = (int)$customer_id;
+        if ($cart->count_contents() > 0) {
+          $products = $cart->get_products();
+          foreach ($products as $product)
+            $products_ids[] = $product['id'];
+          $input['products_ids'] = implode(',', $products_ids);
+        }
+        tep_db_perform(TABLE_SEARCHED_KEYWORDS, $input);
+        tep_session_register('searched_keywords_id');
+        $searched_keywords_id = tep_db_insert_id();
+      }
+    }
+  }
+  // MOD: EOF - SmartSuggest BEGIN
 
   require(DIR_WS_MODULES . FILENAME_PRODUCT_LISTING);
 ?>

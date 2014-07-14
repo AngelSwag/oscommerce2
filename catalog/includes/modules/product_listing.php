@@ -1,39 +1,43 @@
 <?php
 /*
   $Id$
-
   osCommerce, Open Source E-Commerce Solutions
   http://www.oscommerce.com
-
-  Copyright (c) 2014 osCommerce
-
+  Copyright (c) 2010 osCommerce
   Released under the GNU General Public License
 */
 
-  $listing_split = new splitPageResults($listing_sql, MAX_DISPLAY_SEARCH_RESULTS, 'p.products_id');
+$listing_sql = str_replace('pd.products_name,', 'pd.products_name, pd.products_description, ', $listing_sql);
+$listing_split = new splitPageResults($listing_sql, MAX_DISPLAY_SEARCH_RESULTS, 'p.products_id');
+$column3 = 0;
+$column2 = 0;
+$column4 = 0;
+$column6 = 0;
 ?>
 
-  <div class="contentText">
+
+
+<div class="row <?php echo (LISTING_IMAGES_SIZE == 'small') ? 'small_with_description' : 'big_with_description'; ?>">
 
 <?php
-  if ( ($listing_split->number_of_rows > 0) && ( (PREV_NEXT_BAR_LOCATION == '1') || (PREV_NEXT_BAR_LOCATION == '3') ) ) {
+    if ( ($listing_split->number_of_rows > 0) && ( (PREV_NEXT_BAR_LOCATION == '1') || (PREV_NEXT_BAR_LOCATION == '3') ) ) {
 ?>
-
-    <div>
-      <span style="float: right;"><?php echo TEXT_RESULT_PAGE . ' ' . $listing_split->display_links(MAX_DISPLAY_PAGE_LINKS, tep_get_all_get_params(array('page', 'info', 'x', 'y'))); ?></span>
-
+    <div class="toolbar_top">
+      <span class="f_right"><?php echo TEXT_RESULT_PAGE . ' ' . $listing_split->display_links(MAX_DISPLAY_PAGE_LINKS, tep_get_all_get_params(array('page', 'info', 'x', 'y'))); ?></span>
       <span><?php echo $listing_split->display_count(TEXT_DISPLAY_NUMBER_OF_PRODUCTS); ?></span>
     </div>
-
     <br />
 
 <?php
   }
 
-  $prod_list_contents = '<div class="ui-widget infoBoxContainer">' .
-                        '  <div class="ui-widget-header ui-corner-top infoBoxHeading">' .
-                        '    <table border="0" width="100%" cellspacing="0" cellpadding="2" class="productListingHeader">' .
-                        '      <tr>';
+  $prod_list_contents = '<div class="infoBoxContainer">';
+
+  if ( !empty($column_list) ) {
+  $prod_list_contents .='  <div class="sort_text">' .
+                        '    <table>' .
+                        '      <tr>' .
+                        '      <td><b>'.TEXT_SORT_PRODUCTS.' '.TEXT_BY.':</b>  ';
 
   for ($col=0, $n=sizeof($column_list); $col<$n; $col++) {
     $lc_align = '';
@@ -67,105 +71,112 @@
         $lc_text = TABLE_HEADING_IMAGE;
         $lc_align = 'center';
         break;
-      case 'PRODUCT_LIST_BUY_NOW':
-        $lc_text = TABLE_HEADING_BUY_NOW;
-        $lc_align = 'center';
-        break;
     }
 
     if ( ($column_list[$col] != 'PRODUCT_LIST_BUY_NOW') && ($column_list[$col] != 'PRODUCT_LIST_IMAGE') ) {
       $lc_text = tep_create_sort_heading($HTTP_GET_VARS['sort'], $col+1, $lc_text);
+      $prod_list_contents .= '  '.$lc_text.'  ' ;
     }
-
-    $prod_list_contents .= '        <td' . (tep_not_null($lc_align) ? ' align="' . $lc_align . '"' : '') . '>' . $lc_text . '</td>';
   }
 
-  $prod_list_contents .= '      </tr>' .
-                         '    </table>' .
-                         '  </div>';
 
+  $prod_list_contents .= '</td></tr></table></div>';
+
+  }
   if ($listing_split->number_of_rows > 0) {
     $rows = 0;
     $listing_query = tep_db_query($listing_split->sql_query);
-
-    $prod_list_contents .= '  <div class="ui-widget-content ui-corner-bottom productListTable">' .
-                           '    <table border="0" width="100%" cellspacing="0" cellpadding="2" class="productListingData">';
+    $counter = 0;
+    $col = 0;
+    $width = floor(100 / $megastore_grids);
+    $num_products = tep_db_num_rows($listing_query);
 
     while ($listing = tep_db_fetch_array($listing_query)) {
-      $rows++;
+        $counter++;
+        if ($new_price = tep_get_products_special_price($listing['products_id'])) {
+            $products_price = '
+            <span class="old">' .$currencies->display_price($listing['products_price'], tep_get_tax_rate($listing['products_tax_class_id'])). '</span>
+            <span class="new">' .$currencies->display_price($listing['specials_new_products_price'], tep_get_tax_rate($listing['products_tax_class_id'])) . '</span>';
+            $product['sticker_sale'] = STICKER_SALE;
 
-      $prod_list_contents .= '      <tr>';
-
-      for ($col=0, $n=sizeof($column_list); $col<$n; $col++) {
-        switch ($column_list[$col]) {
-          case 'PRODUCT_LIST_MODEL':
-            $prod_list_contents .= '        <td>' . $listing['products_model'] . '</td>';
-            break;
-          case 'PRODUCT_LIST_NAME':
-            if (isset($HTTP_GET_VARS['manufacturers_id']) && tep_not_null($HTTP_GET_VARS['manufacturers_id'])) {
-              $prod_list_contents .= '        <td><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, 'manufacturers_id=' . $HTTP_GET_VARS['manufacturers_id'] . '&products_id=' . $listing['products_id']) . '">' . $listing['products_name'] . '</a></td>';
-            } else {
-              $prod_list_contents .= '        <td><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, ($cPath ? 'cPath=' . $cPath . '&' : '') . 'products_id=' . $listing['products_id']) . '">' . $listing['products_name'] . '</a></td>';
-            }
-            break;
-          case 'PRODUCT_LIST_MANUFACTURER':
-            $prod_list_contents .= '        <td><a href="' . tep_href_link(FILENAME_DEFAULT, 'manufacturers_id=' . $listing['manufacturers_id']) . '">' . $listing['manufacturers_name'] . '</a></td>';
-            break;
-          case 'PRODUCT_LIST_PRICE':
-            if (tep_not_null($listing['specials_new_products_price'])) {
-              $prod_list_contents .= '        <td align="right"><del>' .  $currencies->display_price($listing['products_price'], tep_get_tax_rate($listing['products_tax_class_id'])) . '</del>&nbsp;&nbsp;<span class="productSpecialPrice">' . $currencies->display_price($listing['specials_new_products_price'], tep_get_tax_rate($listing['products_tax_class_id'])) . '</span></td>';
-            } else {
-              $prod_list_contents .= '        <td align="right">' . $currencies->display_price($listing['products_price'], tep_get_tax_rate($listing['products_tax_class_id'])) . '</td>';
-            }
-            break;
-          case 'PRODUCT_LIST_QUANTITY':
-            $prod_list_contents .= '        <td align="right">' . $listing['products_quantity'] . '</td>';
-            break;
-          case 'PRODUCT_LIST_WEIGHT':
-            $prod_list_contents .= '        <td align="right">' . $listing['products_weight'] . '</td>';
-            break;
-          case 'PRODUCT_LIST_IMAGE':
-            if (isset($HTTP_GET_VARS['manufacturers_id'])  && tep_not_null($HTTP_GET_VARS['manufacturers_id'])) {
-              $prod_list_contents .= '        <td align="center"><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, 'manufacturers_id=' . $HTTP_GET_VARS['manufacturers_id'] . '&products_id=' . $listing['products_id']) . '">' . tep_image(DIR_WS_IMAGES . $listing['products_image'], $listing['products_name'], SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT) . '</a></td>';
-            } else {
-              $prod_list_contents .= '        <td align="center"><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, ($cPath ? 'cPath=' . $cPath . '&' : '') . 'products_id=' . $listing['products_id']) . '">' . tep_image(DIR_WS_IMAGES . $listing['products_image'], $listing['products_name'], SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT) . '</a></td>';
-            }
-            break;
-          case 'PRODUCT_LIST_BUY_NOW':
-            $prod_list_contents .= '        <td align="center">' . tep_draw_button(IMAGE_BUTTON_BUY_NOW, 'cart', tep_href_link($PHP_SELF, tep_get_all_get_params(array('action')) . 'action=buy_now&products_id=' . $listing['products_id'])) . '</td>';
-            break;
+        } else {
+            $products_price =  $currencies->display_price($listing['products_price'], tep_get_tax_rate($listing['products_tax_class_id']));
+            $product['sticker_sale']		= '';
         }
-      }
 
-      $prod_list_contents .= '      </tr>';
+        $products_price = '<span class="new_price">'.$products_price.'</span>';
+
+        $product['id']				= $listing['products_id'];
+        $product['name']			= $listing['products_name'];
+        $product['price']			= $products_price;
+        $product['price_special']	= $products_price_special;
+        $product['name_url']		= tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . $listing['products_id']);
+        $product['image']           = tep_image(DIR_WS_IMAGES . $listing['products_image'], $listing['products_name'], SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT);
+
+        $product['review']	= rating_output($listing['products_id']);
+
+
+        /* if product has options */
+        $current_product =  $product['id'];
+        $products_attributes_query = tep_db_query("select count(*) as total from " . TABLE_PRODUCTS_OPTIONS . " popt, " . TABLE_PRODUCTS_ATTRIBUTES . " patrib where patrib.products_id='" . (int)$current_product . "' and patrib.options_id = popt.products_options_id and popt.language_id = '" . (int)$languages_id . "'");
+        $products_attributes = tep_db_fetch_array($products_attributes_query);
+        if ($products_attributes['total'] > 0) {
+            $product['sticker_options'] =  STICKER_OPTION;
+        }  else {
+            $product['sticker_options'] = '';
+        }
+        /* if product has options */
+
+        if (tep_not_null($listing['products_date_available'])) {
+            //if ($listing['products_date_available'] <= date('Y-m-d H:i:s')) {
+                $sticker_new = STICKER_NEW;
+           // }
+        } else {
+            $sticker_new = '';
+        }
+
+
+        /* if product has big img */
+
+
+
+
+
+      $product['cart_url']		= tep_href_link($PHP_SELF, tep_get_all_get_params(array('action', 'products_id')) . 'action=buy_now&products_id=' . $listing['products_id']);
+        if ($column6 == 6) {$column6 = 1;} else  {$column6 ++;}
+        if ($column4 == 4) {$column4 = 1;} else  {$column4 ++;}
+        if ($column3 == 3) {$column3 = 1;} else  {$column3 ++;}
+        if ($column2 == 2) {$column2 = 1;} else  {$column2 ++;}
+
+        include(DC_BLOCKS. 'megastore_model_listing.php');
+
+        $prod_list_contents .= $megastore_listing_output;
+        $col ++;
+        if (($col >= $megastore_grids) || ($counter == $num_products)) {
+            while ( $col < $megastore_grids ) {
+                $col++;
+            }
+            $col = 0;
+        }
     }
-
-    $prod_list_contents .= '    </table>' .
-                           '  </div>' .
-                           '</div>';
-
+    $prod_list_contents .= '</div>';
     echo $prod_list_contents;
   } else {
 ?>
-
-    <p><?php echo TEXT_NO_PRODUCTS; ?></p>
-
+    <p class="margin_discard no_products"><?php echo TEXT_NO_PRODUCTS; ?></p>
 <?php
   }
-
   if ( ($listing_split->number_of_rows > 0) && ((PREV_NEXT_BAR_LOCATION == '2') || (PREV_NEXT_BAR_LOCATION == '3')) ) {
 ?>
 
-    <br />
-
-    <div>
-      <span style="float: right;"><?php echo TEXT_RESULT_PAGE . ' ' . $listing_split->display_links(MAX_DISPLAY_PAGE_LINKS, tep_get_all_get_params(array('page', 'info', 'x', 'y'))); ?></span>
-
-      <span><?php echo $listing_split->display_count(TEXT_DISPLAY_NUMBER_OF_PRODUCTS); ?></span>
+    <div class="toolbar_bottom">
+        <?php echo '<label>'.TEXT_RESULT_PAGE.'</label>' . ' ' . $listing_split->display_links(MAX_DISPLAY_PAGE_LINKS, tep_get_all_get_params(array('page', 'info', 'x', 'y'))); ?>
     </div>
 
 <?php
+
   }
+
 ?>
 
-  </div>
+</div>

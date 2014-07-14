@@ -39,17 +39,24 @@
         } else {
           $best_sellers_query = tep_db_query("select distinct p.products_id, pd.products_name from " . TABLE_PRODUCTS . " p, " . TABLE_PRODUCTS_DESCRIPTION . " pd where p.products_status = '1' and p.products_ordered > 0 and p.products_id = pd.products_id and pd.language_id = '" . (int)$languages_id . "' order by p.products_ordered desc, pd.products_name limit " . MAX_DISPLAY_BESTSELLERS);
         }
-
+        $i = 0;
         if (tep_db_num_rows($best_sellers_query) >= MIN_DISPLAY_BESTSELLERS) {
-          $bestsellers_list = '<ol style="margin: 0; padding-left: 25px;">';
+          $bestsellers_list = '<ul class="infoBox_list">';
           while ($best_sellers = tep_db_fetch_array($best_sellers_query)) {
-            $bestsellers_list .= '<li><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . $best_sellers['products_id']) . '">' . $best_sellers['products_name'] . '</a></li>';
-          }
-          $bestsellers_list .= '</ol>';
+              $i ++;
+              $bestsellers_list .= '<li class="'.($i == 1 ? 'first' : 'item').'"><span>';
+              if ($i < 10) {
+                $bestsellers_list .= '0';
+              }
+              $bestsellers_list .= $i.'.</span><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . $best_sellers['products_id']) . '">' . $best_sellers['products_name'] . '</a></li>';
 
-          $data = '<div class="ui-widget infoBoxContainer">' .
-                  '  <div class="ui-widget-header infoBoxHeading">' . MODULE_BOXES_BEST_SELLERS_BOX_TITLE . '</div>' .
-                  '  <div class="ui-widget-content infoBoxContents">' . $bestsellers_list . '</div>' .
+
+          }
+          $bestsellers_list .= '</ul>';
+
+          $data = '<div class="infoBox infoBoxBestsellers">' .
+                  '  <div class="infoBoxHeading">' . MODULE_BOXES_BEST_SELLERS_BOX_TITLE . '</div>' .
+                  '  <div class="infoBoxContents">' . $bestsellers_list . '</div>' .
                   '</div>';
 
           $oscTemplate->addBlock($data, $this->group);
@@ -67,8 +74,8 @@
 
     function install() {
       tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Best Sellers Module', 'MODULE_BOXES_BEST_SELLERS_STATUS', 'True', 'Do you want to add the module to your shop?', '6', '1', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
-      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Content Placement', 'MODULE_BOXES_BEST_SELLERS_CONTENT_PLACEMENT', 'Right Column', 'Should the module be loaded in the left or right column?', '6', '1', 'tep_cfg_select_option(array(\'Left Column\', \'Right Column\'), ', now())");
-      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_BOXES_BEST_SELLERS_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '0', now())");
+      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Content Placement', 'MODULE_BOXES_BEST_SELLERS_CONTENT_PLACEMENT', 'Left Column', 'Should the module be loaded in the left or right column?', '6', '1', 'tep_cfg_select_option(array(\'Left Column\', \'Right Column\'), ', now())");
+      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_BOXES_BEST_SELLERS_SORT_ORDER', '3', 'Sort order of display. Lowest is displayed first.', '6', '0', now())");
     }
 
     function remove() {
@@ -79,4 +86,3 @@
       return array('MODULE_BOXES_BEST_SELLERS_STATUS', 'MODULE_BOXES_BEST_SELLERS_CONTENT_PLACEMENT', 'MODULE_BOXES_BEST_SELLERS_SORT_ORDER');
     }
   }
-?>

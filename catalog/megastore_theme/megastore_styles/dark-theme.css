@@ -1,0 +1,173 @@
+/*---------------------------------- STYLES FOR DARK THEME --------------------------------------*/
+#footer_popup{
+    background-color:rgba(170, 170, 170, 0.3);
+}
+
+/* theme color styles */
+.bgcolor_icon,
+.form-mail button,
+.es-nav a.btn:hover,
+.flexslider.small .flex-direction-nav a:hover,
+.nav-tabs > li > a:hover, .nav-tabs > .active > a, .nav-tabs > .active > a:hover,
+.nav > li > a:hover{
+    background-color: #a9da00
+}
+.nav > li > a:hover, .nav > li:hover > a{color: #fff}
+
+.custom_color, a .custom_color,
+a:hover .custom_color, a.custom_color:hover,
+.twit a, .twit .icon,
+h4 [class^="icon-twitter-bird"],
+.flex-direction-nav a,
+.form-search button.btn-top-search,
+.product .product-tocart a, .preview .product-tocart a,
+.rating strong i,
+.orderEdit,
+
+#topline a:hover,
+#topline .fadelink li a:hover, #topline .fadelink > a:hover,
+#nav > li.home-link:hover > a,
+.nav-list li li a:hover,
+.breadcrumbs a,
+.product-img-box .more-views li .video i{
+    color: #a9da00
+}
+
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="color"]:focus, .uneditable-input:focus{
+    border-color: #a9da00;
+}
+
+#nav > li > ul,
+#nav li:hover .menu_custom_block,
+.ui-widget-header,
+.ui-widget-content,
+.tab-content,
+.cloud-zoom-big{
+    border-color: #a9da00;
+
+}
+
+button, .button,
+.shopping_cart_mini .button:hover,
+#nav > li:hover > a,
+button.button-3x, .button.button-3x,
+.nav-header > a,
+.custom_submit,
+.ui-widget-header,
+.middle_icon_color{
+    background: #a9da00;
+}
+
+/* end theme color styles */
+
+
+/* blocks hover effects styles */
+.flexslider:hover .flex-next:hover, .flexslider:hover .flex-prev:hover{
+    color: #2c2c2c
+}
+
+button:hover, .button:hover,
+a.btn_basket:hover,
+a.btn:hover,
+.shoppingcart:hover .fadelink span a,
+.btn_search:hover,
+.form-mail button:hover,
+.custom_submit:hover,
+.promo_box:hover div{
+    background: #2c2c2c;
+    opacity: 0.6
+}
+/* end blocks hover effects styles */
+
+
+/* other styles */
+body, a, a:hover, #topline, #topline a{
+    color: #858585
+}
+#topline .fadelink > a{background-image: url("../megastore_images/arrow_down_dark.gif");}
+section#content{box-shadow: none}
+
+ul.infoBox_list li{
+    border-color:#303030;
+}
+
+.content_top,
+.product-shop .short-description,
+.content_top,
+.product-shop .availability{
+    border-color:#515151;
+}
+
+
+
+
+.bgcolor_icon_email,
+.nav-list ul,
+#nav > li > ul,
+#nav li:hover .menu_custom_block,
+.tab-content{
+    background-color: #fff
+}
+
+.contact_info,
+h4 [class^="icon-"],
+h4 [class*=" icon-"],
+.flexslider.small .flex-direction-nav a:hover,
+.custom_submit:hover,
+#footer_bottom .text a,
+#topline .phone .icon-mobile-alt,
+#topline a,
+#nav > li > a,
+.infoBox .infoBoxHeading,
+.infoBox .infoBoxHeading a,
+ul.infoBox_list li span,
+#column_right h1,
+h2.also_pursh_title,
+.product-shop .product-name h1, #column_right .product-shop .prod_info_name h1,
+.availability.in-stock strong,
+.short-description, .short-description a,
+.product-shop .price-box .regular_price,
+h4 .bgcolor_icon_email [class^="icon-email"]{
+    color: #fff
+}
+
+#back-top a,
+.form-search button,
+a.btn_basket{
+    background-color: #2c2c2c
+}
+
+#topline .phone span,
+#nav > li:hover > a,
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input,
+.product-name a,
+.product-price .new_price,
+#nav li.list_column, #nav li.category_desc_in_menu,
+#nav a.custom_category_link, #nav .menu_custom_block a,
+.tab-content, .tab-content a,
+.product .product-price, .product .product-price-regular, .preview .product-price, .preview .product-price-regular{
+    color: #010101
+}
+
+#topline .link_label,
+#footer_bottom i,
+#footer_popup p a, #footer_popup h3, #footer_popup h4{
+    color: #858585
+}
+
+#topline .fadelink > a,
+#topline .fadelink .ul_wrapper ul{
+    background-color: #2c2c2c;
+    border: 1px solid #3c3c3c;
+}
+#topline .fadelink > a,
+#topline .fadelink li a, #topline .fadelink > a{
+    color:#606060;
+}
+
+/* Background color */
+body{
+    background-color: #222222
+}
+/* Background image */
+

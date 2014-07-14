@@ -122,7 +122,7 @@ function popupWindow(url) {
 
   <div class="contentText">
     <div>
-      <?php echo tep_draw_input_field('keywords', '', 'style="width: 100%"') . tep_draw_hidden_field('search_in_description', '1'); ?>
+      <?php echo tep_draw_input_field('keywords', '', 'style="width: 90%"') . tep_draw_hidden_field('search_in_description', '1'); ?>
     </div>
 
     <br />

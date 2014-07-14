@@ -33,15 +33,27 @@
     function execute() {
       global $request_type, $oscTemplate;
 
-      $data = '<div class="ui-widget infoBoxContainer">' .
-              '  <div class="ui-widget-header infoBoxHeading">' . MODULE_BOXES_SEARCH_BOX_TITLE . '</div>' .
-              '  <div class="ui-widget-content infoBoxContents" style="text-align: center;">' .
-              '    ' . tep_draw_form('quick_find', tep_href_link(FILENAME_ADVANCED_SEARCH_RESULT, '', $request_type, false), 'get') .
-              '    ' . tep_draw_input_field('keywords', '', 'size="10" maxlength="30" style="width: 75%"') . '&nbsp;' . tep_draw_hidden_field('search_in_description', '1') . tep_hide_session_id() . tep_image_submit('button_quick_find.gif', MODULE_BOXES_SEARCH_BOX_TITLE) . '<br />' . MODULE_BOXES_SEARCH_BOX_TEXT . '<br /><a href="' . tep_href_link(FILENAME_ADVANCED_SEARCH) . '"><strong>' . MODULE_BOXES_SEARCH_BOX_ADVANCED_SEARCH . '</strong></a>' .
+      $data = '<div class="infoBox infoBoxSearch">' .
+              '  <div class="infoBoxHeading">' . MODULE_BOXES_SEARCH_BOX_TITLE . '</div>' .
+              '  <div class="infoBoxContents" style="text-align: center;">' .
+			  
+// MOD: BOF - SmartSuggest
+//			  '    ' . tep_draw_form('quick_find', tep_href_link(FILENAME_ADVANCED_SEARCH_RESULT, '', $request_type, false), 'get') .
+			  '    ' . tep_draw_form('quick_find', tep_href_link(FILENAME_ADVANCED_SEARCH_RESULT, '', $request_type, false), 'get', 'id="frmSearch"') .
+//			  '    ' . tep_draw_input_field('keywords', '', 'size="10" maxlength="30" style="width: 75%"') . '&nbsp;' .
+              '    ' . tep_draw_input_field('keywords', '', 'id="txtSearch" onkeyup="searchSuggest(event);" autocomplete="off" size="10" maxlength="30" style="width: 75%"') . '<div id="smartsuggest" ></div>' . tep_draw_hidden_field('search_in_description', '1') . tep_hide_session_id() . tep_image_submit('button_quick_find.gif', MODULE_BOXES_SEARCH_BOX_TITLE) . '<br />' . MODULE_BOXES_SEARCH_BOX_TEXT . '<br /><a href="' . tep_href_link(FILENAME_ADVANCED_SEARCH) . '"><strong>' . MODULE_BOXES_SEARCH_BOX_ADVANCED_SEARCH . '</strong></a>' .
+			  '    ' .tep_draw_hidden_field('search_in_description', '1') . tep_hide_session_id() .
               '    </form>' .
               '  </div>' .
               '</div>';
 
+      if (SMARTSUGGEST_ENABLED != 'false') {
+        require(DIR_WS_CLASSES . 'smartsuggest.php');
+        $smartsuggest = new smartsuggest();
+        $smartsuggest->output($data);
+      }
+// MOD: EOF - SmartSuggest
+	  
       $oscTemplate->addBlock($data, $this->group);
     }
 
@@ -55,7 +67,7 @@
 
     function install() {
       tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Search Module', 'MODULE_BOXES_SEARCH_STATUS', 'True', 'Do you want to add the module to your shop?', '6', '1', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
-      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Content Placement', 'MODULE_BOXES_SEARCH_CONTENT_PLACEMENT', 'Left Column', 'Should the module be loaded in the left or right column?', '6', '1', 'tep_cfg_select_option(array(\'Left Column\', \'Right Column\'), ', now())");
+      tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Content Placement', 'MODULE_BOXES_SEARCH_CONTENT_PLACEMENT', 'Right Column', 'Should the module be loaded in the left or right column?', '6', '1', 'tep_cfg_select_option(array(\'Left Column\', \'Right Column\'), ', now())");
       tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_BOXES_SEARCH_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '0', now())");
     }
 

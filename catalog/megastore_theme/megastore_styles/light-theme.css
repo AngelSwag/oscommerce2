@@ -1,0 +1,161 @@
+/*---------------------------------- STYLES FOR LIGHT THEME --------------------------------------*/
+section#content {
+    box-shadow: 0 -5px 5px -4px rgba(0, 0, 0, 0.1);
+}
+ul.infoBox_list li{
+    border-color:#E9E9E9;
+}
+#footer_popup{
+    background-color:rgba(252, 252, 252, 0.85);
+}
+.contact_info,
+h4 [class^="icon-"],
+h4 [class*=" icon-"],
+#nav > li:hover > a,
+.flexslider.small .flex-direction-nav a:hover,
+.custom_submit:hover,
+h4 .bgcolor_icon_email [class^="icon-email"]{
+    color: #fff
+}
+
+/* theme color styles */
+.bgcolor_icon,
+.form-mail button,
+.es-nav a.btn:hover,
+.flexslider.small .flex-direction-nav a:hover,
+.nav-tabs > li > a:hover, .nav-tabs > .active > a, .nav-tabs > .active > a:hover,
+.nav > li > a:hover,
+.messageStackSuccess{
+    background-color: #ff7e00
+}
+
+#topline a:hover,
+#topline .fadelink li a:hover, #topline .fadelink > a:hover,
+#nav > li.home-link:hover > a,
+.nav-list li li a:hover,
+.breadcrumbs a,
+.custom_color, a .custom_color,
+a:hover .custom_color, a.custom_color:hover,
+.twit a, .twit .icon,
+h4 [class^="icon-twitter-bird"],
+.flex-direction-nav a,
+.form-search button.btn-top-search,
+.product .product-tocart a, .preview .product-tocart a,
+.rating strong i,
+.orderEdit,
+.product-img-box .more-views li .video i{
+    color: #ff7e00
+}
+
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="color"]:focus, .uneditable-input:focus,
+.cloud-zoom-big{
+    border-color: #ff7e00;
+}
+
+#nav > li > ul,
+#nav li:hover .menu_custom_block,
+.ui-widget-header,
+.ui-widget-content,
+.tab-content{
+    border-color: #ff7e00;
+
+}
+
+button, .button,
+.shopping_cart_mini .button:hover,
+#nav > li:hover > a,
+button.button-3x, .button.button-3x,
+.nav-header > a,
+.custom_submit,
+.ui-widget-header,
+.middle_icon_color{
+    background: #ff7e00;
+}
+
+/* end theme color styles */
+
+.nav > li > a:hover, .nav > li:hover > a{color: #fff}
+/* blocks hover effects styles */
+.flexslider:hover .flex-next:hover, .flexslider:hover .flex-prev:hover{
+    color: #2c2c2c
+}
+
+button:hover, .button:hover,
+a.btn_basket:hover,
+a.btn:hover,
+.shoppingcart:hover .fadelink span a,
+.btn_search:hover,
+.form-mail button:hover,
+.custom_submit:hover,
+.promo_box:hover div{
+    background: #2c2c2c;
+    opacity: 0.6
+}
+/* end blocks hover effects styles */
+
+
+/* other styles */
+body, a, a:hover, #topline, #topline a,
+#footer_bottom i{
+    color: #131313
+}
+
+
+
+.nav-list ul,
+#nav > li > ul,
+#nav li:hover .menu_custom_block{
+    background-color: #fff
+}
+
+#back-top a,
+.form-search button,
+a.btn_basket{
+    background-color: #2c2c2c
+}
+
+#topline .phone span{
+    color: #010101
+}
+
+#topline .link_label{
+    color: #858585
+}
+
+#topline .fadelink > a,
+#topline .fadelink .ul_wrapper ul{
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+}
+#topline .fadelink > a,
+#topline .fadelink li a, #topline .fadelink > a{
+    color:#606060;
+}
+
+/*---------------------------------- END STYLES FOR LIGHT THEME --------------------------------------*/
+
+
+/*---------------------------------- LAST STYLES FROM ADMIN SETTINGS --------------------------------------*/
+
+/* Font - Google font */
+h1, #column_right h1, h2, h3, h4,
+.nav-list li a,
+#nav > li > a,
+.block .block-title,
+.accordion-heading,
+.custom_blocks .box a,
+#footer_popup h3, #footer_popup h4,
+button.button-2x, .button.button-2x,
+button.button-3x, .button.button-3x,
+.product-shop h2.custom_block_title{
+    font-family: 'Rokkitt', sans-serif
+}
+
+/* Background color */
+body{
+    background-color: #fff
+}
+
+
+
+

@@ -30,7 +30,11 @@
 
       for ($i=0, $n=sizeof($this->_trail); $i<$n; $i++) {
         if (isset($this->_trail[$i]['link']) && tep_not_null($this->_trail[$i]['link'])) {
-          $trail_string .= '<a href="' . $this->_trail[$i]['link'] . '" class="headerNavigation">' . $this->_trail[$i]['title'] . '</a>';
+            if ( ($i+1) == $n ) {
+                $trail_string .= '<span class="headerNavigation">' . $this->_trail[$i]['title'] . '</span>';
+            } else {
+                $trail_string .= '<a href="' . $this->_trail[$i]['link'] . '" class="headerNavigation1">' . $this->_trail[$i]['title'] . '</a><span class="separator">&rsaquo;</span>';
+            } 
         } else {
           $trail_string .= $this->_trail[$i]['title'];
         }
@@ -41,4 +45,3 @@
       return $trail_string;
     }
   }
-?>

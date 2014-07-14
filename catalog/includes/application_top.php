@@ -45,8 +45,38 @@
 
 // set php_self in the local scope
   $req = parse_url($HTTP_SERVER_VARS['SCRIPT_NAME']);
-  $PHP_SELF = substr($req['path'], ($request_type == 'NONSSL') ? strlen(DIR_WS_HTTP_CATALOG) : strlen(DIR_WS_HTTPS_CATALOG));
-
+  
+/**
+  * ULTIMATE Seo Urls 5 PRO by FWR Media
+  * function to return the base filename 
+  */
+    //$PHP_SELF = substr($req['path'], ($request_type == 'NONSSL') ? strlen(DIR_WS_HTTP_CATALOG) : strlen(DIR_WS_HTTPS_CATALOG));
+  function usu5_base_filename() {
+    // Probably won't get past SCRIPT_NAME unless this is reporting cgi location
+    $base = new ArrayIterator( array( 'SCRIPT_NAME', 'PHP_SELF', 'REQUEST_URI', 'ORIG_PATH_INFO', 'HTTP_X_ORIGINAL_URL', 'HTTP_X_REWRITE_URL' ) );
+    while ( $base->valid() ) {
+      if ( array_key_exists(  $base->current(), $_SERVER ) && !empty(  $_SERVER[$base->current()] ) ) {
+        if ( false !== strpos( $_SERVER[$base->current()], '.php' ) ) {
+          preg_match( '@[a-z0-9_]+\.php@i', $_SERVER[$base->current()], $matches );
+          if ( is_array( $matches ) && ( array_key_exists( 0, $matches ) )
+                                    && ( substr( $matches[0], -4, 4 ) == '.php' )
+                                    && ( is_readable( $matches[0] ) ) ) {
+            return $matches[0];
+          } 
+        } 
+      }
+      $base->next();
+    }
+    // Some odd server set ups return / for SCRIPT_NAME and PHP_SELF when accessed as mysite.com (no index.php) where they usually return /index.php
+    if ( ( $_SERVER['SCRIPT_NAME'] == '/' ) || ( $_SERVER['PHP_SELF'] == '/' ) ) {
+      return 'index.php';
+    }
+    // Return the standard RC3 code 
+    return ( ( ( strlen( ini_get( 'cgi.fix_pathinfo' ) ) > 0) && ( (bool)ini_get( 'cgi.fix_pathinfo' ) == false ) ) || !isset( $_SERVER['SCRIPT_NAME'] ) ) ? basename( $_SERVER['PHP_SELF'] ) : basename( $_SERVER['SCRIPT_NAME'] );
+  } // End function
+// set php_self in the local scope
+  $PHP_SELF = usu5_base_filename();
+  
   if ($request_type == 'NONSSL') {
     define('DIR_WS_CATALOG', DIR_WS_HTTP_CATALOG);
   } else {
@@ -282,7 +312,18 @@
 
 // include the language translations
   $_system_locale_numeric = setlocale(LC_NUMERIC, 0);
-  require(DIR_WS_LANGUAGES . $language . '.php');
+  /**
+  * ULTIMATE Seo Urls 5 PRO by FWR Media
+  */
+  Usu_Main::i()->setVar( 'languages_id', $languages_id )
+               ->setVar( 'request_type', $request_type ) 
+               ->setVar( 'session_started', $session_started ) 
+               ->setVar( 'sid', $SID ) 
+               ->setVar( 'language', $language )
+               ->setVar( 'filename', $PHP_SELF )
+               ->initiate( ( isset( $lng ) && ( $lng instanceof language ) ) ? $lng : array(), $languages_id, $language );
+
+			   require(DIR_WS_LANGUAGES . $language . '.php');
   setlocale(LC_NUMERIC, $_system_locale_numeric); // Prevent LC_ALL from setting LC_NUMERIC to a locale with 1,0 float/decimal values instead of 1.0 (see bug #634)
 
 // currency
@@ -336,11 +377,31 @@
                               }
                               tep_redirect(tep_href_link($goto, tep_get_all_get_params($parameters)));
                               break;
-      // customer adds a product from the products page
+      // customer adds a product from the products page							  
       case 'add_product' :    if (isset($HTTP_POST_VARS['products_id']) && is_numeric($HTTP_POST_VARS['products_id'])) {
-                                $attributes = isset($HTTP_POST_VARS['id']) ? $HTTP_POST_VARS['id'] : '';
-                                $cart->add_cart($HTTP_POST_VARS['products_id'], $cart->get_quantity(tep_get_uprid($HTTP_POST_VARS['products_id'], $attributes))+1, $attributes);
-                              }
+//++++ QT Pro: Begin Changed code
+                                //$attributes = isset($HTTP_POST_VARS['id']) ? $HTTP_POST_VARS['id'] : '';
+								$attributes=array();
+                                if (isset($HTTP_POST_VARS['attrcomb']) && (preg_match("/^\d{1,10}-\d{1,10}(,\d{1,10}-\d{1,10})*$/",$HTTP_POST_VARS['attrcomb']))) {
+                                  $attrlist=explode(',',$HTTP_POST_VARS['attrcomb']);
+                                  foreach ($attrlist as $attr) {
+                                    list($oid, $oval)=explode('-',$attr);
+                                    if (is_numeric($oid) && $oid==(int)$oid && is_numeric($oval) && $oval==(int)$oval)
+                                      $attributes[$oid]=$oval;
+                                  }
+                                }
+                                if (isset($HTTP_POST_VARS['id']) && is_array($HTTP_POST_VARS['id'])) {
+                                  foreach ($HTTP_POST_VARS['id'] as $key=>$val) {
+                                    if (is_numeric($key) && $key==(int)$key && is_numeric($val) && $val==(int)$val)
+                                      $attributes=$attributes + $HTTP_POST_VARS['id'];
+                                  }
+                                }                                
+//++++ QT Pro: End Changed Code
+                              $cart->add_cart($HTTP_POST_VARS['products_id'], $cart->get_quantity(tep_get_uprid($HTTP_POST_VARS['products_id'], $attributes))+1, $attributes);
+							  }
+							  
+
+							  
                               tep_redirect(tep_href_link($goto, tep_get_all_get_params($parameters)));
                               break;
       // customer removes a product from their shopping cart
@@ -490,4 +551,10 @@
 // initialize the message stack for output messages
   require(DIR_WS_CLASSES . 'message_stack.php');
   $messageStack = new messageStack;
+
+include('megastore_theme.php');
+
+include('megastore_theme/megastore_functions.php');
+include('megastore_theme/megastore_socials_accounts.php');
+require(DIR_WS_INCLUDES . 'add_ccgvdc_application_top.php');  // CCGV 
 ?>
