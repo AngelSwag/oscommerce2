@@ -33,6 +33,13 @@
         'title' => BOX_TOOLS_CACHE,
         'link' => tep_href_link(FILENAME_CACHE)
       ),
+//START CONTRIBUTIONS MANAGER
+      array(
+        'code' => FILENAME_CONTRIBUTIONS_MANAGER,
+        'title' => BOX_TOOLS_CONTRIBUTIONS_MANAGER,
+        'link' => tep_href_link(FILENAME_CONTRIBUTIONS_MANAGER)
+      ),
+//END CONTRIBUTIONS MANAGER
       array(
         'code' => FILENAME_DEFINE_LANGUAGE,
         'title' => BOX_TOOLS_DEFINE_LANGUAGE,
@@ -62,6 +69,11 @@
         'code' => FILENAME_VERSION_CHECK,
         'title' => BOX_TOOLS_VERSION_CHECK,
         'link' => tep_href_link(FILENAME_VERSION_CHECK)
+      ),
+	  array(
+        'code' => FILENAME_QTPRODOCTOR,
+        'title' => BOX_TOOLS_QTPRODOCTOR,
+        'link' => tep_href_link(FILENAME_QTPRODOCTOR)
       ),
       array(
         'code' => FILENAME_WHOS_ONLINE,

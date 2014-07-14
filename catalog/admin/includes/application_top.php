@@ -29,7 +29,7 @@
   }
 
 // Define the project version --- obsolete, now retrieved with tep_get_version()
-  define('PROJECT_VERSION', 'osCommerce Online Merchant v2.3');
+  define('PROJECT_VERSION', 'osCommerce Online Merchant v2.3.4');
 
 // some code to solve compatibility issues
   require(DIR_WS_FUNCTIONS . 'compatibility.php');
@@ -237,4 +237,6 @@
                         array('title' => TEXT_CACHE_MANUFACTURERS, 'code' => 'manufacturers', 'file' => 'manufacturers_box-language.cache', 'multiple' => true),
                         array('title' => TEXT_CACHE_ALSO_PURCHASED, 'code' => 'also_purchased', 'file' => 'also_purchased-language.cache', 'multiple' => true)
                        );
+					   
+require(DIR_WS_INCLUDES . 'add_ccgvdc_application_top.php'); // CCGV
 ?>

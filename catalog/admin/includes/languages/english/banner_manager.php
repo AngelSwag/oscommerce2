@@ -19,6 +19,7 @@ define('TABLE_HEADING_STATUS', 'Status');
 define('TABLE_HEADING_ACTION', 'Action');
 
 define('TEXT_BANNERS_TITLE', 'Banner Title:');
+define('TEXT_BANNERS_TITLE', 'Banner Order:');
 define('TEXT_BANNERS_URL', 'Banner URL:');
 define('TEXT_BANNERS_GROUP', 'Banner Group:');
 define('TEXT_BANNERS_NEW_GROUP', ', or enter a new banner group below');

@@ -12,6 +12,11 @@
 
   require('includes/application_top.php');
 
+  //++++ QT Pro: Begin Added code
+	//Create the product investigation for this product that are used in this page.
+	$product_investigation = qtpro_doctor_investigate_product($HTTP_GET_VARS['pID']);
+  //++++ QT Pro: End Added code
+  
   require(DIR_WS_CLASSES . 'currencies.php');
   $currencies = new currencies();
 
@@ -77,13 +82,103 @@
           }
         }
 
-        $categories_image = new upload('categories_image');
-        $categories_image->set_destination(DIR_FS_CATALOG_IMAGES);
+	// BOF: [TiM's osC Solutions] Better Image Upload Features
+        // $categories_image = new upload('categories_image');
+        // $categories_image->set_destination(DIR_FS_CATALOG_IMAGES);
 
-        if ($categories_image->parse() && $categories_image->save()) {
-          tep_db_query("update " . TABLE_CATEGORIES . " set categories_image = '" . tep_db_input($categories_image->filename) . "' where categories_id = '" . (int)$categories_id . "'");
+        // if ($categories_image->parse() && $categories_image->save()) {
+          // tep_db_query("update " . TABLE_CATEGORIES . " set categories_image = '" . tep_db_input($categories_image->filename) . "' where categories_id = '" . (int)$categories_id . "'");
+        // }
+
+        if (is_uploaded_file($HTTP_POST_FILES['categories_image']['tmp_name'])) {
+          
+          // require necessary files
+          require_once(DIR_FS_ADMIN . DIR_WS_CLASSES . 'image.php');
+        
+          // create image object
+          $oImage = new TiM_image($HTTP_POST_FILES['categories_image']['tmp_name']);
+        
+          // resample image
+          if (CATEGORY_IMAGE_RESAMPLING == 'SMALL_IMAGE' || CATEGORY_IMAGE_RESAMPLING == 'BIG_IMAGE') {
+            $oImage->resample((CATEGORY_IMAGE_RESAMPLING == 'BIG_IMAGE') ? BIG_IMAGE_WIDTH : SMALL_IMAGE_WIDTH, (CATEGORY_IMAGE_RESAMPLING == 'BIG_IMAGE') ? BIG_IMAGE_HEIGHT : SMALL_IMAGE_HEIGHT, (CATEGORY_IMAGE_WHITESPACING == 'true') ? 'FIT_USE_WHITESPACING' : 'FIT', defined(CATEGORY_IMAGE_WHITESPACE_COLOR) ? CATEGORY_IMAGE_WHITESPACE_COLOR : '255,255,255');
+          }
+          
+          // set extension
+          switch(CATEGORY_IMAGE_FORMAT) {
+            case 'gif':
+              $image_extension = '.gif';
+              break;
+            case 'jpg':
+            case 'jpeg':
+              $image_extension = '.jpg';
+              break;
+            case 'png':
+              $image_extension = '.png';
+              break;
+            default:
+              $image_extension = '.' . pathinfo($HTTP_POST_FILES['categories_image']['name'], PATHINFO_EXTENSION);
+              if (!in_array($image_extension, array('.gif', '.png', '.jpg'))) $image_extension = '.jpg';
+          }
+          
+          // set basename
+          switch(CATEGORY_IMAGE_FILENAME_TYPE) {
+            
+            // set name i.e. categories/originalname.jpg
+            case 'Standard':
+              $image_basename = 'categories/' . pathinfo($HTTP_POST_FILES['categories_image']['name'], PATHINFO_FILENAME) . $image_extension;
+              break;
+              
+            // set seo name i.e. categories/451-Handheld_devices.jpg
+            default:
+              // prepare image seo name
+              $image_basename = $HTTP_POST_VARS['categories_name'][$languages_id];
+              $image_basename = mb_convert_encoding($image_basename, 'HTML-ENTITIES', CHARSET); // convert character encoding
+              $image_basename = preg_replace(array('/\'/', '/ /', '/ß/', '/&(..)lig;/', '/&([aouAOU])uml;/', '/&(.)[^;]*;/'), array('', '_', 'ss', "$1", "$1".'e', "$1"), $image_basename); // translate foreign characters
+              $image_basename = 'categories/' . $categories_id . '-' . $image_basename . $image_extension;
+              break;
+          }
+          
+          // create categories folder if not exists
+          if (!file_exists(DIR_FS_CATALOG_IMAGES . 'categories/')) {
+            if (!mkdir(DIR_FS_CATALOG_IMAGES . 'categories/', 0777)) die('Failed creating folder '. DIR_FS_CATALOG_IMAGES . 'categories/');
+          }
+          
+          // if we are replacing an image, delete it
+            $current_image_query = tep_db_query("select categories_image from ". TABLE_CATEGORIES ." where categories_id = '". (int)$categories_id ."';");
+            $current_image = tep_db_fetch_array($current_image_query);
+            if (is_file(DIR_FS_CATALOG_IMAGES . $current_image['image'])) {
+              $flag_current_image_conflict = false;
+              if (tep_db_num_rows(tep_db_query("select categories_id from ". TABLE_CATEGORIES ." where categories_image = '". $current_image['image']  ."' and categories_id != '". (int)$categories_id  ."'")) > 0) $flag_current_image_conflict = true;
+              if (!$flag_current_image_conflict) unlink(DIR_FS_CATALOG_IMAGES . $current_image['image']);
+            }
+          
+          // if image target already exists
+          if (file_exists(DIR_FS_CATALOG_IMAGES . $image_basename)) {
+            $flag_new_image_conflict = false;
+            
+            // check if target is safe to delete
+            if (tep_db_num_rows(tep_db_query("select categories_id from ". TABLE_CATEGORIES ." where categories_image = '". $image_basename  ."' and categories_id != '". (int)$categories_id  ."'")) > 0) $flag_new_image_conflict = true;
+            
+            // safe to delete target, so delete it
+            if (!$flag_new_image_conflict) unlink(DIR_FS_CATALOG_IMAGES . $image_basename);
+          }
+          
+          // make sure there are no physical conflicts
+          if (!$flag_new_image_conflict) {
+            
+          // save image
+          $oImage->write(DIR_FS_CATALOG_IMAGES . $image_basename);
+                
+          // update database
+          tep_db_perform(TABLE_CATEGORIES, array('categories_image' => tep_db_prepare_input($image_basename)), 'update', "categories_id = '" . (int)$categories_id . "'");
+            
+          // warn about conflicts
+          } else {
+            $messageStack->add_session('There is a conflict with the image filename: '. $image_basename, 'error');
+          }
+          
         }
-
+      // EOF: [TiM's osC Solutions] Better Image Upload Features
         if (USE_CACHE == 'true') {
           tep_reset_cache_block('categories');
           tep_reset_cache_block('also_purchased');
@@ -214,18 +309,26 @@
 
         $sql_data_array = array('products_quantity' => (int)tep_db_prepare_input($HTTP_POST_VARS['products_quantity']),
                                 'products_model' => tep_db_prepare_input($HTTP_POST_VARS['products_model']),
+								'products_video' => tep_db_prepare_input($HTTP_POST_VARS['products_video']),
                                 'products_price' => tep_db_prepare_input($HTTP_POST_VARS['products_price']),
                                 'products_date_available' => $products_date_available,
                                 'products_weight' => (float)tep_db_prepare_input($HTTP_POST_VARS['products_weight']),
                                 'products_status' => tep_db_prepare_input($HTTP_POST_VARS['products_status']),
                                 'products_tax_class_id' => tep_db_prepare_input($HTTP_POST_VARS['products_tax_class_id']),
                                 'manufacturers_id' => (int)tep_db_prepare_input($HTTP_POST_VARS['manufacturers_id']));
+								
+		//++++ QT Pro: Begin Added code
+		if($product_investigation['has_tracked_options'] or $product_investigation['stock_entries_count'] > 0){
+			//Do not modify the stock from this page if the product has database entries or has tracked options
+			unset($sql_data_array['products_quantity']);
+		}
+		//++++ QT Pro: End Added code
 
-        $products_image = new upload('products_image');
-        $products_image->set_destination(DIR_FS_CATALOG_IMAGES);
-        if ($products_image->parse() && $products_image->save()) {
-          $sql_data_array['products_image'] = tep_db_prepare_input($products_image->filename);
-        }
+        // $products_image = new upload('products_image');
+        // $products_image->set_destination(DIR_FS_CATALOG_IMAGES);
+        // if ($products_image->parse() && $products_image->save()) {
+          // $sql_data_array['products_image'] = tep_db_prepare_input($products_image->filename);
+        // }
 
         if ($action == 'insert_product') {
           $insert_sql_data = array('products_date_added' => 'now()');
@@ -243,7 +346,100 @@
 
           tep_db_perform(TABLE_PRODUCTS, $sql_data_array, 'update', "products_id = '" . (int)$products_id . "'");
         }
+		
+      // BOF: [TiM's osC Solutions] Better Image Upload Features
+        if (is_uploaded_file($HTTP_POST_FILES['products_image']['tmp_name'])) {
+          
+          // require necessary files
+          require_once(DIR_FS_ADMIN . DIR_WS_CLASSES . 'image.php');
+        
+          // create image object
+          $oImage = new TiM_image($HTTP_POST_FILES['products_image']['tmp_name']);
+        
+          // resample image
+          if (PRODUCT_IMAGE_RESAMPLING == 'SMALL_IMAGE' || PRODUCT_IMAGE_RESAMPLING == 'BIG_IMAGE') {
+            $oImage->resample((PRODUCT_IMAGE_RESAMPLING == 'BIG_IMAGE') ? BIG_IMAGE_WIDTH : SMALL_IMAGE_WIDTH, (PRODUCT_IMAGE_RESAMPLING == 'BIG_IMAGE') ? BIG_IMAGE_HEIGHT : SMALL_IMAGE_HEIGHT, (PRODUCT_IMAGE_WHITESPACING == 'true') ? 'FIT_USE_WHITESPACING' : 'FIT', defined(PRODUCT_IMAGE_WHITESPACE_COLOR) ? PRODUCT_IMAGE_WHITESPACE_COLOR : '255,255,255');
+          }
 
+          // set extension
+          switch(PRODUCT_IMAGE_FORMAT) {
+            case 'gif':
+              $image_extension = '.gif';
+              break;
+            case 'jpg':
+            case 'jpeg':
+              $image_extension = '.jpg';
+              break;
+            case 'png':
+              $image_extension = '.png';
+              break;
+            default:
+              $image_extension = '.' . pathinfo($HTTP_POST_FILES['products_image']['name'], PATHINFO_EXTENSION);
+              if (!in_array($image_extension, array('.gif', '.png', '.jpg'))) $image_extension = '.jpg';
+          }
+          
+          // set basename
+          switch(PRODUCT_IMAGE_FILENAME_TYPE) {
+            
+            // set name i.e. products/originalname.jpg
+            case 'Standard':
+              $image_basename = 'products/' . pathinfo($HTTP_POST_FILES['products_image']['name'], PATHINFO_FILENAME) . $image_extension;
+              break;
+              
+            // set name i.e. products/CB8002.jpg
+            case 'products_model':
+              $image_basename = 'products/' . $HTTP_POST_VARS['products_model'] . $image_extension;
+              break;
+              
+            // set seo name i.e. products/451-iPod_nano.jpg
+            case 'SEO friendly':
+            default:
+              // prepare image seo name
+              $image_basename = $HTTP_POST_VARS['products_name'][$languages_id];
+              $image_basename = mb_convert_encoding($image_basename, 'HTML-ENTITIES', CHARSET); // convert character encoding
+              $image_basename = preg_replace(array('/\'/', '/\./', '/ /', '/ß/', '/&(..)lig;/', '/&([aouAOU])uml;/', '/&(.)[^;]*;/'), array('', '', '_', 'ss', "$1", "$1".'e', "$1"), $image_basename); // translate foreign characters
+              $image_basename = 'products/' . $products_id . '-' . $image_basename . $image_extension;
+              break;
+          }
+          
+          // create products folder if not exists
+          if (!file_exists(DIR_FS_CATALOG_IMAGES . 'products/')) {
+            if (!mkdir(DIR_FS_CATALOG_IMAGES . 'products/', 0777)) die('Failed creating folder '. DIR_FS_CATALOG_IMAGES . 'products/');
+          }
+          
+          // if image target already exists
+          if (file_exists(DIR_FS_CATALOG_IMAGES . $image_basename)) {
+            $flag_image_conflict = false;
+            
+            // check if target is safe to delete
+            if (tep_db_num_rows(tep_db_query("select products_id from ". TABLE_PRODUCTS ." where products_image = '". $image_basename  ."' and products_id != '". (int)$products_id  ."'")) > 0) $flag_image_conflict = true;
+            if (tep_db_num_rows(tep_db_query("select id from ". TABLE_PRODUCTS_IMAGES ." where image = '". $image_basename  ."'")) > 0) $flag_image_conflict = true;
+            
+            // safe to delete target, so delete it
+            if (!$flag_image_conflict) unlink(DIR_FS_CATALOG_IMAGES . $image_basename);
+          }
+          
+          
+          // make sure there are no physical conflicts
+          if (!$flag_image_conflict) {
+            
+          // save image
+          $oImage->write(DIR_FS_CATALOG_IMAGES . $image_basename);
+                
+          // update database
+          tep_db_perform(TABLE_PRODUCTS, array('products_image' => tep_db_prepare_input($image_basename)), 'update', "products_id = '" . (int)$products_id . "'");
+            
+          // warn about conflicts
+          } else {
+            $messageStack->add_session('There is a conflict with the image filename: '. $image_basename, 'error');
+          }
+          
+        }
+      // EOF: [TiM's osC Solutions] Better Image Upload Features
+
+		/** AJAX Attribute Manager  **/ 
+		require_once('attributeManager/includes/attributeManagerUpdateAtomic.inc.php'); 
+		/** AJAX Attribute Manager  end **/
         $languages = tep_get_languages();
         for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
           $language_id = $languages[$i]['id'];
@@ -267,43 +463,170 @@
         $pi_sort_order = 0;
         $piArray = array(0);
 
+        // foreach ($HTTP_POST_FILES as $key => $value) {
+////Update existing large product images
+          // if (preg_match('/^products_image_large_([0-9]+)$/', $key, $matches)) {
+            // $pi_sort_order++;
+
+            // $sql_data_array = array('htmlcontent' => tep_db_prepare_input($HTTP_POST_VARS['products_image_htmlcontent_' . $matches[1]]),
+                                    // 'sort_order' => $pi_sort_order);
+
+            // $t = new upload($key);
+            // $t->set_destination(DIR_FS_CATALOG_IMAGES);
+            // if ($t->parse() && $t->save()) {
+              // $sql_data_array['image'] = tep_db_prepare_input($t->filename);
+            // }
+
+            // tep_db_perform(TABLE_PRODUCTS_IMAGES, $sql_data_array, 'update', "products_id = '" . (int)$products_id . "' and id = '" . (int)$matches[1] . "'");
+
+            // $piArray[] = (int)$matches[1];
+          // } elseif (preg_match('/^products_image_large_new_([0-9]+)$/', $key, $matches)) {
+////Insert new large product images
+            // $sql_data_array = array('products_id' => (int)$products_id,
+                                    // 'htmlcontent' => tep_db_prepare_input($HTTP_POST_VARS['products_image_htmlcontent_new_' . $matches[1]]));
+
+            // $t = new upload($key);
+            // $t->set_destination(DIR_FS_CATALOG_IMAGES);
+            // if ($t->parse() && $t->save()) {
+              // $pi_sort_order++;
+
+              // $sql_data_array['image'] = tep_db_prepare_input($t->filename);
+              // $sql_data_array['sort_order'] = $pi_sort_order;
+
+              // tep_db_perform(TABLE_PRODUCTS_IMAGES, $sql_data_array);
+
+              // $piArray[] = tep_db_insert_id();
+            // }
+          // }
+        // }
+      // BOF: [TiM's osC Solutions] Better Image Upload Features
         foreach ($HTTP_POST_FILES as $key => $value) {
-// Update existing large product images
-          if (preg_match('/^products_image_large_([0-9]+)$/', $key, $matches)) {
+          
+          // if this is a large image
+          if (preg_match('/^products_image_large_([0-9]+)$/', $key, $matches) || preg_match('/^products_image_large_new_([0-9]+)$/', $key, $matches)) {
+            
+            // increase sort order
             $pi_sort_order++;
+            
+            // If this is a new image, set a flag
+            if (strpos($key, 'new')) $new_image = true;
+            else $new_image = false;
+            
+            // set some sql data
+            $sql_data_array = array(
+              'htmlcontent' => tep_db_prepare_input($new_image ? $HTTP_POST_VARS['products_image_htmlcontent_new_' . $matches[1]] : $HTTP_POST_VARS['products_image_htmlcontent_' . $matches[1]]),
+              'sort_order' => $pi_sort_order
+            );
+            
+            // make sure this is an uploaded file
+            if (is_uploaded_file($HTTP_POST_FILES[$key]['tmp_name'])) {
+              
+              // require necessary files
+              require_once(DIR_FS_ADMIN . DIR_WS_CLASSES . 'image.php');
+            
+              // create image object
+              $oImage = new TiM_image($HTTP_POST_FILES[$key]['tmp_name']);
+              
+              if ($oImage->width() >= 300 && $oImage->height() >= 200) {
+              
+                // resample image
+                $oImage->resample(defined('BIG_IMAGE_WIDTH') ? BIG_IMAGE_WIDTH : 1024, defined('BIG_IMAGE_HEIGHT') ? BIG_IMAGE_HEIGHT : 1024, 'FIT_ONLY_BIGGER', defined(PRODUCT_IMAGE_WHITESPACE_COLOR) ? PRODUCT_IMAGE_WHITESPACE_COLOR : '255,255,255');
+              
+                // watermark image
+                if (defined('WATERMARK_FILE') && WATERMARK_FILE != '' && is_file(DIR_FS_CATALOG . WATERMARK_FILE)) {
+                  $oImage->watermark(DIR_FS_CATALOG . WATERMARK_FILE, WATERMARK_POSITION_H, WATERMARK_POSITION_V, WATERMARK_PADDING);
+                }
 
-            $sql_data_array = array('htmlcontent' => tep_db_prepare_input($HTTP_POST_VARS['products_image_htmlcontent_' . $matches[1]]),
-                                    'sort_order' => $pi_sort_order);
-
-            $t = new upload($key);
-            $t->set_destination(DIR_FS_CATALOG_IMAGES);
-            if ($t->parse() && $t->save()) {
-              $sql_data_array['image'] = tep_db_prepare_input($t->filename);
+                // set extension
+                switch(PRODUCT_IMAGE_FORMAT) {
+                  case 'gif':
+                    $image_extension = '.gif';
+                    break;
+                  case 'jpg':
+                  case 'jpeg':
+                    $image_extension = '.jpg';
+                    break;
+                  case 'png':
+                    $image_extension = '.png';
+                    break;
+                  default:
+                    $image_extension = '.' . pathinfo($HTTP_POST_FILES[$key]['name'], PATHINFO_EXTENSION);
+                    if (!in_array($image_extension, array('.gif', '.png', '.jpg'))) $image_extension = '.jpg';
+                }
+                
+                // set basename
+                switch(PRODUCT_IMAGE_FILENAME_TYPE) {
+                  
+                  // set name i.e. products/originalname.jpg
+                  case 'Standard':
+                    $image_basename = 'products/' . pathinfo($HTTP_POST_FILES[$key]['name'], PATHINFO_FILENAME) . $image_extension;
+                    break;
+                    
+                  // set name i.e. products/CB8002.jpg
+                  case 'products_model':
+                    $image_basename = 'products/' . $HTTP_POST_VARS['products_model'] .'-'. rand(0, 9999) .'_large' . $image_extension;
+                    break;
+                    
+                  // set seo name i.e. products/451-iPod_nano.jpg
+                  case 'SEO friendly':
+                  default:
+                    // prepare image seo name
+                    $image_basename = $HTTP_POST_VARS['products_name'][$languages_id];
+                    $image_basename = mb_convert_encoding($image_basename, 'HTML-ENTITIES', CHARSET); // convert character encoding
+                    $image_basename = preg_replace(array('/\'/', '/\./', '/ /', '/ß/', '/&(..)lig;/', '/&([aouAOU])uml;/', '/&(.)[^;]*;/'), array('', '', '_', 'ss', "$1", "$1".'e', "$1"), $image_basename); // translate foreign characters
+                    $image_basename = 'products/' . $products_id . '-' . $image_basename .'-'. rand(0, 9999) .'_large.jpg';
+                    break;
+                }
+                
+                // create products folder if not exists
+                if (!file_exists(DIR_FS_CATALOG_IMAGES . 'products/')) {
+                  if (!mkdir(DIR_FS_CATALOG_IMAGES . 'products/', 0777)) die('Failed creating folder '. DIR_FS_CATALOG_IMAGES . 'products/');
+                }
+                
+                // if image target already exists
+                if (file_exists(DIR_FS_CATALOG_IMAGES . $image_basename)) {
+                  $flag_image_conflict = false;
+                  
+                  // check if target is safe to delete
+                  if (tep_db_num_rows(tep_db_query("select products_id from ". TABLE_PRODUCTS ." where products_image = '". $image_basename  ."' and products_id != '". (int)$products_id  ."'")) > 0) $flag_image_conflict = true;
+                  if (tep_db_num_rows(tep_db_query("select id from ". TABLE_PRODUCTS_IMAGES ." where image = '". $image_basename  ."' and ". (($new_image) ? "id != '". (int)$matches[1] ."'" : "products_id != '". (int)$products_id  ."'"))) > 0) $flag_image_conflict = true;
+                  
+                  // safe to delete target, so delete it
+                  if (!$flag_image_conflict) unlink(DIR_FS_CATALOG_IMAGES . $image_basename);
+                }
+                
+                // make sure there are no physical conflicts
+                if (!$flag_image_conflict) {
+                  
+                  // save image
+                  $oImage->write(DIR_FS_CATALOG_IMAGES . $image_basename);
+                  
+                  // add image to sql data
+                  $sql_data_array['image'] = $image_basename;
+                  
+                // warn about conflicts
+                } else {
+                  $messageStack->add_session('There is a conflict with the image filename: '. $image_basename, 'error');
+                }
+                
+              } else {
+                $messageStack->add_session(pathinfo($HTTP_POST_FILES[$key]['name'], PATHINFO_BASENAME) . ' was not saved because it must be larger than 300x200 pixels.', 'error');
+              }
             }
-
-            tep_db_perform(TABLE_PRODUCTS_IMAGES, $sql_data_array, 'update', "products_id = '" . (int)$products_id . "' and id = '" . (int)$matches[1] . "'");
-
-            $piArray[] = (int)$matches[1];
-          } elseif (preg_match('/^products_image_large_new_([0-9]+)$/', $key, $matches)) {
-// Insert new large product images
-            $sql_data_array = array('products_id' => (int)$products_id,
-                                    'htmlcontent' => tep_db_prepare_input($HTTP_POST_VARS['products_image_htmlcontent_new_' . $matches[1]]));
-
-            $t = new upload($key);
-            $t->set_destination(DIR_FS_CATALOG_IMAGES);
-            if ($t->parse() && $t->save()) {
-              $pi_sort_order++;
-
-              $sql_data_array['image'] = tep_db_prepare_input($t->filename);
-              $sql_data_array['sort_order'] = $pi_sort_order;
-
+            
+            // save image to database
+            if ($new_image) {
+              $sql_data_array['products_id'] = (int)$products_id;
               tep_db_perform(TABLE_PRODUCTS_IMAGES, $sql_data_array);
-
-              $piArray[] = tep_db_insert_id();
+            } else {
+              tep_db_perform(TABLE_PRODUCTS_IMAGES, $sql_data_array, 'update', "products_id = '" . (int)$products_id . "' and id = '" . (int)$matches[1] . "'");
             }
+            
+            // save images_id to images haystack
+            $piArray[] = $new_image ? tep_db_insert_id() : $matches[1];
           }
         }
-
+      // EOF: [TiM's osC Solutions] Better Image Upload Features
         $product_images_query = tep_db_query("select image from " . TABLE_PRODUCTS_IMAGES . " where products_id = '" . (int)$products_id . "' and id not in (" . implode(',', $piArray) . ")");
         if (tep_db_num_rows($product_images_query)) {
           while ($product_images = tep_db_fetch_array($product_images_query)) {
@@ -343,10 +666,10 @@
               $messageStack->add_session(ERROR_CANNOT_LINK_TO_SAME_CATEGORY, 'error');
             }
           } elseif ($HTTP_POST_VARS['copy_as'] == 'duplicate') {
-            $product_query = tep_db_query("select products_quantity, products_model, products_image, products_price, products_date_available, products_weight, products_tax_class_id, manufacturers_id from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'");
+            $product_query = tep_db_query("select products_quantity, products_model, products_video, products_image, products_price, products_date_available, products_weight, products_tax_class_id, manufacturers_id from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'");
             $product = tep_db_fetch_array($product_query);
 
-            tep_db_query("insert into " . TABLE_PRODUCTS . " (products_quantity, products_model,products_image, products_price, products_date_added, products_date_available, products_weight, products_status, products_tax_class_id, manufacturers_id) values ('" . tep_db_input($product['products_quantity']) . "', '" . tep_db_input($product['products_model']) . "', '" . tep_db_input($product['products_image']) . "', '" . tep_db_input($product['products_price']) . "',  now(), " . (empty($product['products_date_available']) ? "null" : "'" . tep_db_input($product['products_date_available']) . "'") . ", '" . tep_db_input($product['products_weight']) . "', '0', '" . (int)$product['products_tax_class_id'] . "', '" . (int)$product['manufacturers_id'] . "')");
+            tep_db_query("insert into " . TABLE_PRODUCTS . " (products_quantity, products_model, products_video, products_image, products_price, products_date_added, products_date_available, products_weight, products_status, products_tax_class_id, manufacturers_id) values ('" . tep_db_input($product['products_quantity']) . "', '" . tep_db_input($product['products_model']) . "', '" . tep_db_input($product['products_video']) . "', '" . tep_db_input($product['products_image']) . "', '" . tep_db_input($product['products_price']) . "',  now(), " . (empty($product['products_date_available']) ? "null" : "'" . tep_db_input($product['products_date_available']) . "'") . ", '" . tep_db_input($product['products_weight']) . "', '0', '" . (int)$product['products_tax_class_id'] . "', '" . (int)$product['manufacturers_id'] . "')");
             $dup_products_id = tep_db_insert_id();
 
             $description_query = tep_db_query("select language_id, products_name, products_description, products_url from " . TABLE_PRODUCTS_DESCRIPTION . " where products_id = '" . (int)$products_id . "'");
@@ -380,6 +703,12 @@
   } else {
     $messageStack->add(ERROR_CATALOG_IMAGE_DIRECTORY_DOES_NOT_EXIST, 'error');
   }
+  
+  //++++ QT Pro: Begin Changed code
+  if($product_investigation['any_problems']){
+  	$messageStack->add('<strong>Warning: </strong>'. qtpro_doctor_formulate_product_investigation($product_investigation, 'short_suggestion') ,'warning');
+  }
+  //++++ QT Pro: End Changed code
 
   require(DIR_WS_INCLUDES . 'template_top.php');
 
@@ -390,6 +719,7 @@
                        'products_id' => '',
                        'products_quantity' => '',
                        'products_model' => '',
+					   'products_video' => '',
                        'products_image' => '',
                        'products_larger_images' => array(),
                        'products_price' => '',
@@ -404,7 +734,7 @@
     $pInfo = new objectInfo($parameters);
 
     if (isset($HTTP_GET_VARS['pID']) && empty($HTTP_POST_VARS)) {
-      $product_query = tep_db_query("select pd.products_name, pd.products_description, pd.products_url, p.products_id, p.products_quantity, p.products_model, p.products_image, p.products_price, p.products_weight, p.products_date_added, p.products_last_modified, date_format(p.products_date_available, '%Y-%m-%d') as products_date_available, p.products_status, p.products_tax_class_id, p.manufacturers_id from " . TABLE_PRODUCTS . " p, " . TABLE_PRODUCTS_DESCRIPTION . " pd where p.products_id = '" . (int)$HTTP_GET_VARS['pID'] . "' and p.products_id = pd.products_id and pd.language_id = '" . (int)$languages_id . "'");
+      $product_query = tep_db_query("select pd.products_name, pd.products_description, pd.products_url, p.products_id, p.products_quantity, p.products_model, p.products_video, p.products_image, p.products_price, p.products_weight, p.products_date_added, p.products_last_modified, date_format(p.products_date_available, '%Y-%m-%d') as products_date_available, p.products_status, p.products_tax_class_id, p.manufacturers_id from " . TABLE_PRODUCTS . " p, " . TABLE_PRODUCTS_DESCRIPTION . " pd where p.products_id = '" . (int)$HTTP_GET_VARS['pID'] . "' and p.products_id = pd.products_id and pd.language_id = '" . (int)$languages_id . "'");
       $product = tep_db_fetch_array($product_query);
 
       $pInfo->objectInfo($product);
@@ -557,6 +887,14 @@ function updateNet() {
 <script type="text/javascript"><!--
 updateGross();
 //--></script>
+<!-- AJAX Attribute Manager  -->
+          <tr>
+          	<td colspan="2"><?php require( 'attributeManager/includes/attributeManagerPlaceHolder.inc.php' )?></td>
+          </tr>
+          <tr>
+            <td colspan="2"><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
+          </tr>
+<!-- AJAX Attribute Manager end -->
 <?php
     for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
 ?>
@@ -577,7 +915,21 @@ updateGross();
           </tr>
           <tr>
             <td class="main"><?php echo TEXT_PRODUCTS_QUANTITY; ?></td>
-            <td class="main"><?php echo tep_draw_separator('pixel_trans.gif', '24', '15') . '&nbsp;' . tep_draw_input_field('products_quantity', $pInfo->products_quantity); ?></td>
+            <?php //++++ QT Pro: Begin Changed code
+			if($product_investigation['has_tracked_options'] or $product_investigation['stock_entries_count'] > 0)
+			{
+		  	?>
+			<td class="main"><?php echo tep_draw_separator('pixel_trans.gif', '24', '15') . ' <a href="' . tep_href_link("stock.php", 'product_id=' . $pInfo->products_id) . ' " target="_blank">' . tep_image_button('button_stock.gif', "Stock") . '</a>'?></td>
+			<?php 
+			
+			}else{
+            //++++ QT Pro: End Changed code
+			?>
+			<td class="main"><?php echo tep_draw_separator('pixel_trans.gif', '24', '15') . ' ' . tep_draw_input_field('products_quantity', $pInfo->products_quantity); ?></td>
+            <?php //++++ QT Pro: Begin Changed code
+			}
+			//++++ QT Pro: End Changed code
+		  	?>
           </tr>
           <tr>
             <td colspan="2"><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
@@ -585,6 +937,15 @@ updateGross();
           <tr>
             <td class="main"><?php echo TEXT_PRODUCTS_MODEL; ?></td>
             <td class="main"><?php echo tep_draw_separator('pixel_trans.gif', '24', '15') . '&nbsp;' . tep_draw_input_field('products_model', $pInfo->products_model); ?></td>
+          </tr>
+          <tr>
+            <td colspan="2"><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
+          </tr>
+          <tr>
+            <td class="main"><?php echo TEXT_PRODUCTS_VIDEO; ?></td>
+            <td class="main">
+                <?php echo tep_draw_separator('pixel_trans.gif', '24', '15'); ?>http://www.youtube.com/embed/<?php echo tep_draw_input_field('products_video', $pInfo->products_video); ?>
+            </td>
           </tr>
           <tr>
             <td colspan="2"><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
@@ -1027,8 +1388,9 @@ $('#products_date_available').datepicker({
             }
             $category_path_string = substr($category_path_string, 0, -1);
 
-            $heading[] = array('text' => '<strong>' . $cInfo->categories_name . '</strong>');
 
+			
+            $heading[] = array('text' => '<strong>' . $cInfo->categories_name . '</strong>');
             $contents[] = array('align' => 'center', 'text' => tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $category_path_string . '&cID=' . $cInfo->categories_id . '&action=edit_category')) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $category_path_string . '&cID=' . $cInfo->categories_id . '&action=delete_category')) . tep_draw_button(IMAGE_MOVE, 'arrow-4', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $category_path_string . '&cID=' . $cInfo->categories_id . '&action=move_category')));
             $contents[] = array('text' => '<br />' . TEXT_DATE_ADDED . ' ' . tep_date_short($cInfo->date_added));
             if (tep_not_null($cInfo->last_modified)) $contents[] = array('text' => TEXT_LAST_MODIFIED . ' ' . tep_date_short($cInfo->last_modified));
@@ -1037,7 +1399,9 @@ $('#products_date_available').datepicker({
           } elseif (isset($pInfo) && is_object($pInfo)) { // product info box contents
             $heading[] = array('text' => '<strong>' . tep_get_products_name($pInfo->products_id, $languages_id) . '</strong>');
 
-            $contents[] = array('align' => 'center', 'text' => tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=new_product')) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=delete_product')) . tep_draw_button(IMAGE_MOVE, 'arrow-4', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=move_product')) . tep_draw_button(IMAGE_COPY_TO, 'copy', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=copy_to')));
+			// QT PRO
+			$contents[] = array('align' => 'center', 'text' => tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=new_product')) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=delete_product')) . tep_draw_button(IMAGE_MOVE, 'arrow-4', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=move_product')) . tep_draw_button(IMAGE_COPY_TO, 'copy', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=copy_to')) . tep_draw_button(IMAGE_QTSTOCK, 'copy', tep_href_link("stock.php", 'product_id=' . $pInfo->products_id)));
+            //$contents[] = array('align' => 'center', 'text' => tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=new_product')) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=delete_product')) . tep_draw_button(IMAGE_MOVE, 'arrow-4', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=move_product')) . tep_draw_button(IMAGE_COPY_TO, 'copy', tep_href_link(FILENAME_CATEGORIES, 'cPath=' . $cPath . '&pID=' . $pInfo->products_id . '&action=copy_to')));
             $contents[] = array('text' => '<br />' . TEXT_DATE_ADDED . ' ' . tep_date_short($pInfo->products_date_added));
             if (tep_not_null($pInfo->products_last_modified)) $contents[] = array('text' => TEXT_LAST_MODIFIED . ' ' . tep_date_short($pInfo->products_last_modified));
             if (date('Y-m-d') < $pInfo->products_date_available) $contents[] = array('text' => TEXT_DATE_AVAILABLE . ' ' . tep_date_short($pInfo->products_date_available));

@@ -95,11 +95,15 @@ define('BOX_TAXES_TAX_RATES', 'Tax Rates');
 
 // reports box text in includes/boxes/reports.php
 define('BOX_HEADING_REPORTS', 'Reports');
+//++++ QT Pro: Begin Changed code
+define('BOX_REPORTS_STATS_LOW_STOCK_ATTRIB', 'Stock Report');
+//++++ QT Pro: End Changed Code
 define('BOX_REPORTS_PRODUCTS_VIEWED', 'Products Viewed');
 define('BOX_REPORTS_PRODUCTS_PURCHASED', 'Products Purchased');
 define('BOX_REPORTS_ORDERS_TOTAL', 'Customer Orders-Total');
 
 // tools text in includes/boxes/tools.php
+define('BOX_TOOLS_QTPRODOCTOR', 'QTPro Doctor');
 define('BOX_HEADING_TOOLS', 'Tools');
 define('BOX_TOOLS_ACTION_RECORDER', 'Action Recorder');
 define('BOX_TOOLS_BACKUP', 'Database Backup');
@@ -212,6 +216,7 @@ define('IMAGE_LOCK', 'Lock');
 define('IMAGE_MODULE_INSTALL', 'Install Module');
 define('IMAGE_MODULE_REMOVE', 'Remove Module');
 define('IMAGE_MOVE', 'Move');
+define('IMAGE_QTSTOCK', 'Stock');
 define('IMAGE_NEW_BANNER', 'New Banner');
 define('IMAGE_NEW_CATEGORY', 'New Category');
 define('IMAGE_NEW_COUNTRY', 'New Country');
@@ -298,4 +303,13 @@ define('ERROR_FILE_NOT_SAVED', 'Error: File upload not saved.');
 define('ERROR_FILETYPE_NOT_ALLOWED', 'Error: File upload type not allowed.');
 define('SUCCESS_FILE_SAVED_SUCCESSFULLY', 'Success: File upload saved successfully.');
 define('WARNING_NO_FILE_UPLOADED', 'Warning: No file uploaded.');
+//START CONTRIBUTIONS MANAGER Ver. 1.0
+define('BOX_TOOLS_CONTRIBUTIONS_MANAGER', 'Contributions Mgr.');
+//END CONTRIBUTIONS MANAGER Ver. 1.0
+// MOD: BOF - SmartSuggest
+define('BOX_REPORTS_KEYWORDS_SEARCHED', 'Customers Keywords Searched');
+define('TEXT_DISPLAY_NUMBER_OF_KEYWORDS', 'Displaying <b>%d</b> to <b>%d</b> (of <b>%d</b> keywords)');
+// MOD: EOF - SmartSuggest
+
+require(DIR_WS_LANGUAGES . 'add_ccgvdc_english.php');  // CCGV
 ?>

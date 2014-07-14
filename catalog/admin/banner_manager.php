@@ -33,6 +33,8 @@
       case 'update':
         if (isset($HTTP_POST_VARS['banners_id'])) $banners_id = tep_db_prepare_input($HTTP_POST_VARS['banners_id']);
         $banners_title = tep_db_prepare_input($HTTP_POST_VARS['banners_title']);
+		$banners_order = tep_db_prepare_input($HTTP_POST_VARS['banners_order']);
+		
         $banners_url = tep_db_prepare_input($HTTP_POST_VARS['banners_url']);
         $new_banners_group = tep_db_prepare_input($HTTP_POST_VARS['new_banners_group']);
         $banners_group = (empty($new_banners_group)) ? tep_db_prepare_input($HTTP_POST_VARS['banners_group']) : $new_banners_group;
@@ -68,6 +70,7 @@
         if ($banner_error == false) {
           $db_image_location = (tep_not_null($banners_image_local)) ? $banners_image_local : $banners_image_target . $banners_image->filename;
           $sql_data_array = array('banners_title' => $banners_title,
+		                          'banners_order' => $banners_order,
                                   'banners_url' => $banners_url,
                                   'banners_image' => $db_image_location,
                                   'banners_group' => $banners_group,
@@ -205,6 +208,7 @@ function popupImageWindow(url) {
     $parameters = array('expires_date' => '',
                         'date_scheduled' => '',
                         'banners_title' => '',
+						'banners_order' => '',
                         'banners_url' => '',
                         'banners_group' => '',
                         'banners_image' => '',
@@ -218,7 +222,7 @@ function popupImageWindow(url) {
 
       $bID = tep_db_prepare_input($HTTP_GET_VARS['bID']);
 
-      $banner_query = tep_db_query("select banners_title, banners_url, banners_image, banners_group, banners_html_text, status, date_format(date_scheduled, '%Y/%m/%d') as date_scheduled, date_format(expires_date, '%Y/%m/%d') as expires_date, expires_impressions, date_status_change from " . TABLE_BANNERS . " where banners_id = '" . (int)$bID . "'");
+      $banner_query = tep_db_query("select banners_title, banners_order, banners_url, banners_image, banners_group, banners_html_text, status, date_format(date_scheduled, '%Y/%m/%d') as date_scheduled, date_format(expires_date, '%Y/%m/%d') as expires_date, expires_impressions, date_status_change from " . TABLE_BANNERS . " where banners_id = '" . (int)$bID . "'");
       $banner = tep_db_fetch_array($banner_query);
 
       $bInfo->objectInfo($banner);
@@ -240,6 +244,10 @@ function popupImageWindow(url) {
           <tr>
             <td class="main"><?php echo TEXT_BANNERS_TITLE; ?></td>
             <td class="main"><?php echo tep_draw_input_field('banners_title', $bInfo->banners_title, '', true); ?></td>
+          </tr>
+          <tr>
+            <td class="main"><?php echo TEXT_BANNERS_ORDER; ?></td>
+            <td class="main"><?php echo tep_draw_input_field('banners_order', $bInfo->banners_order, '', true); ?></td>
           </tr>
           <tr>
             <td class="main"><?php echo TEXT_BANNERS_URL; ?></td>
@@ -323,7 +331,7 @@ $('#expires_date').datepicker({
                 <td class="dataTableHeadingContent" align="right"><?php echo TABLE_HEADING_ACTION; ?>&nbsp;</td>
               </tr>
 <?php
-    $banners_query_raw = "select banners_id, banners_title, banners_image, banners_group, status, expires_date, expires_impressions, date_status_change, date_scheduled, date_added from " . TABLE_BANNERS . " order by banners_title, banners_group";
+    $banners_query_raw = "select banners_id, banners_title, banners_order, banners_image, banners_group, status, expires_date, expires_impressions, date_status_change, date_scheduled, date_added from " . TABLE_BANNERS . " order by banners_group, banners_order, banners_title";
     $banners_split = new splitPageResults($HTTP_GET_VARS['page'], MAX_DISPLAY_SEARCH_RESULTS, $banners_query_raw, $banners_query_numrows);
     $banners_query = tep_db_query($banners_query_raw);
     while ($banners = tep_db_fetch_array($banners_query)) {

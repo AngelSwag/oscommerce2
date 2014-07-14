@@ -21,8 +21,10 @@
         $mail_sent_to = TEXT_ALL_CUSTOMERS;
         break;
       case '**D':
-        $mail_query = tep_db_query("select customers_firstname, customers_lastname, customers_email_address from " . TABLE_CUSTOMERS . " where customers_newsletter = '1'");
-        $mail_sent_to = TEXT_NEWSLETTER_CUSTOMERS;
+        //$mail_query = tep_db_query("select customers_firstname, customers_lastname, customers_email_address from " . TABLE_CUSTOMERS . " where customers_newsletter = '1' 	  union SELECT '','',customers_email_address FROM ".TABLE_BOXNEWSLETTER."");
+		
+
+	    $mail_sent_to = TEXT_NEWSLETTER_CUSTOMERS;
         break;
       default:
         $customers_email_address = tep_db_prepare_input($HTTP_POST_VARS['customers_email_address']);

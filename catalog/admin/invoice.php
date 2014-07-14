@@ -114,7 +114,10 @@
       }
 
       echo '        </td>' . "\n" .
-           '        <td class="dataTableContent" valign="top">' . $order->products[$i]['model'] . '</td>' . "\n";
+// BOF Attribute Product Codes V1.2
+           //'        <td class="dataTableContent" valign="top">' . $order->products[$i]['model'] . '</td>' . "\n";
+		   '	    <td class="dataTableContent" valign="top">' . $order->products[$i]['code'] . '</td>' . "\n";
+// EOF Attribute Product Codes V1.2
       echo '        <td class="dataTableContent" align="right" valign="top">' . tep_display_tax_value($order->products[$i]['tax']) . '%</td>' . "\n" .
            '        <td class="dataTableContent" align="right" valign="top"><strong>' . $currencies->format($order->products[$i]['final_price'], true, $order->info['currency'], $order->info['currency_value']) . '</strong></td>' . "\n" .
            '        <td class="dataTableContent" align="right" valign="top"><strong>' . $currencies->format(tep_add_tax($order->products[$i]['final_price'], $order->products[$i]['tax'], true), true, $order->info['currency'], $order->info['currency_value']) . '</strong></td>' . "\n" .

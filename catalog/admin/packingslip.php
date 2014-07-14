@@ -107,7 +107,9 @@
       }
 
       echo '        </td>' . "\n" .
-           '        <td class="dataTableContent" valign="top">' . $order->products[$i]['model'] . '</td>' . "\n" .
+//         '        <td class="dataTableContent" valign="top">' . $order->products[$i]['model'] . '</td>' . "\n" .
+           '        <td class="dataTableContent" valign="top">' . $order->products[$i]['code'] . '</td>' . "\n" .
+// EOF Attribute Product Codes V1.2
            '      </tr>' . "\n";
     }
 ?>

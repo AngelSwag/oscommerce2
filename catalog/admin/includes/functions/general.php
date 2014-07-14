@@ -713,6 +713,26 @@
     return tep_draw_pull_down_menu($name, $tax_class_array, $tax_class_id);
   }
 
+//++++ QT Pro: Begin Changed code
+////
+// Function to build menu of available class files given a file prefix
+// Used for configuring plug-ins for product information attributes
+  function tep_cfg_pull_down_class_files($prefix, $current_file) {
+    $d=DIR_FS_CATALOG . DIR_WS_CLASSES;
+    $function_directory = dir ($d);
+
+    while (false !== ($function = $function_directory->read())) {
+      if (preg_match('/^'.$prefix.'(.+)\.php$/',$function,$function_name)) {
+          $file_list[]=array('id'=>$function_name[1], 'text'=>$function_name[1]);
+      }
+    }
+    $function_directory->close();
+
+    return tep_draw_pull_down_menu('configuration_value', $file_list, $current_file);
+  }
+
+//++++ QT Pro: End Changed Code
+
 ////
 // Function to read in text area in admin
  function tep_cfg_textarea($text) {
@@ -952,6 +972,9 @@
       tep_reset_cache_block('categories');
       tep_reset_cache_block('also_purchased');
     }
+	//++++ QT Pro: Begin Changed code
+	qtpro_doctor_amputate_all_from_product($product_id);
+	//++++ QT Pro: End Changed code
   }
 
   function tep_remove_product($product_id) {
@@ -1005,12 +1028,48 @@
 
   function tep_remove_order($order_id, $restock = false) {
     if ($restock == 'on') {
-      $order_query = tep_db_query("select products_id, products_quantity from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int)$order_id . "'");
+		
+	
+ //++++ QT Pro: Begin Changed code
+      //$order_query = tep_db_query("select products_id, products_quantity from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int)$order_id . "'");
+      //while ($order = tep_db_fetch_array($order_query)) {
+        //tep_db_query("update " . TABLE_PRODUCTS . " set products_quantity = products_quantity + " . $order['products_quantity'] . ", products_ordered = products_ordered - " . $order['products_quantity'] . " where products_id = '" . (int)$order['products_id'] . "'");
+      //}
+    //}
+	
+	  $order_query = tep_db_query("select products_id, products_quantity, products_stock_attributes from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int)$order_id . "'");
       while ($order = tep_db_fetch_array($order_query)) {
-        tep_db_query("update " . TABLE_PRODUCTS . " set products_quantity = products_quantity + " . $order['products_quantity'] . ", products_ordered = products_ordered - " . $order['products_quantity'] . " where products_id = '" . (int)$order['products_id'] . "'");
+        $product_stock_adjust = 0;
+        if (tep_not_null($order['products_stock_attributes'])) {
+          if ($order['products_stock_attributes'] != '$$DOWNLOAD$$') {
+            $attributes_stock_query = tep_db_query("SELECT products_stock_quantity 
+                                                    FROM " . TABLE_PRODUCTS_STOCK . " 
+                                                    WHERE products_stock_attributes = '" . $order['products_stock_attributes'] . "' 
+                                                    AND products_id = '" . (int)$order['products_id'] . "'");
+            if (tep_db_num_rows($attributes_stock_query) > 0) {
+                $attributes_stock_values = tep_db_fetch_array($attributes_stock_query);
+                tep_db_query("UPDATE " . TABLE_PRODUCTS_STOCK . " 
+                              SET products_stock_quantity = products_stock_quantity + '" . (int)$order['products_quantity'] . "' 
+                              WHERE products_stock_attributes = '" . $order['products_stock_attributes'] . "' 
+                              AND products_id = '" . (int)$order['products_id'] . "'");
+                $product_stock_adjust = min($order['products_quantity'],  $order['products_quantity']+$attributes_stock_values['products_stock_quantity']);
+            } else {
+                tep_db_query("INSERT into " . TABLE_PRODUCTS_STOCK . " 
+                              (products_id, products_stock_attributes, products_stock_quantity)
+                              VALUES ('" . (int)$order['products_id'] . "', '" . $order['products_stock_attributes'] . "', '" . (int)$order['products_quantity'] . "')");
+                $product_stock_adjust = $order['products_quantity'];
+            }
+          }
+        } else {
+            $product_stock_adjust = $order['products_quantity'];
+        } 
+        tep_db_query("UPDATE " . TABLE_PRODUCTS . " 
+                      SET products_quantity = products_quantity + " . $product_stock_adjust . ", products_ordered = products_ordered - " . (int)$order['products_quantity'] . " 
+                      WHERE products_id = '" . (int)$order['products_id'] . "'");
+//++++ QT Pro: End Changed Code
       }
     }
-
+	
     tep_db_query("delete from " . TABLE_ORDERS . " where orders_id = '" . (int)$order_id . "'");
     tep_db_query("delete from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int)$order_id . "'");
     tep_db_query("delete from " . TABLE_ORDERS_PRODUCTS_ATTRIBUTES . " where orders_id = '" . (int)$order_id . "'");
@@ -1472,4 +1531,66 @@
       return is_writable($file);
     }
   }
-?>
+  
+//++++ QT Pro: Begin Changed code
+require(DIR_WS_FUNCTIONS . 'qtpro_functions.php');
+//++++ QT Pro: End Changed code
+
+/**
+  * ULTIMATE Seo Urls 5 PRO by FWR Media
+  * Reset the various cache systems
+  * @param string $action
+  */
+  function tep_reset_cache_data_usu5( $action = false ) {
+    if ( $action == 'reset' ) {
+      $usu5_path = realpath( dirname( __FILE__ ) . '/../../../' ) . '/' . DIR_WS_MODULES . 'ultimate_seo_urls5/';
+      switch( USU5_CACHE_SYSTEM ) {
+        case 'file': 
+          $path_to_cache = $usu5_path . 'cache_system/cache/';
+          $it = new DirectoryIterator( $path_to_cache );
+          while( $it->valid() ) {
+            if ( !$it->isDot() && is_readable( $path_to_cache . $it->getFilename() ) && ( substr( $it->getFilename(), -6 ) == '.cache' ) ) {
+              @unlink( $path_to_cache . $it->getFilename() );
+            }
+            $it->next();
+          }
+          break;
+        case 'mysql':
+          tep_db_query( 'TRUNCATE TABLE `usu_cache`' );
+          break;
+        case 'memcache':
+          if ( class_exists('Memcache') ){
+            include $usu5_path . 'interfaces/cache_interface.php';
+            include $usu5_path . 'cache_system/memcache.php';
+            Memcache_Cache_Module::iAdmin()->initiate()
+                                           ->flushOut();
+          }
+          break;
+        case 'sqlite':
+          include $usu5_path . 'interfaces/cache_interface.php';
+          include $usu5_path . 'cache_system/sqlite.php';
+          Sqlite_Cache_Module::admini()->gc(); 
+          break;
+      }
+      tep_db_query( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value='false' WHERE configuration_key='USU5_RESET_CACHE'" );
+    }       
+  } // end function
+
+  // function to reset SmartSuggest database configuration entries and customers' searched keywords table
+  function tep_uninstall_smartsuggest($action){
+    switch ($action){
+      case 'uninstall':
+        tep_db_query("DELETE FROM configuration_group WHERE configuration_group_title = 'SmartSuggest'");
+        tep_db_query("DELETE FROM configuration WHERE configuration_key like 'SMARTSUGGEST_%'");
+        tep_db_query("DROP TABLE `".TABLE_SEARCHED_KEYWORDS."`");
+        break;
+      default:
+        break;
+    }
+    # The return value is used to set the value upon viewing
+    # It's NOT returning a false to indicate failure!!
+    return 'false';
+}
+
+  
+  ?>

@@ -12,7 +12,9 @@
 
   require('includes/application_top.php');
 
-  $action = (isset($HTTP_GET_VARS['action']) ? $HTTP_GET_VARS['action'] : '');
+require('../megastore_theme.php');
+
+$action = (isset($HTTP_GET_VARS['action']) ? $HTTP_GET_VARS['action'] : '');
 
   if (tep_not_null($action)) {
     switch ($action) {
@@ -21,7 +23,7 @@
 
         $store_logo = new upload('store_logo');
         $store_logo->set_extensions('png');
-        $store_logo->set_destination(DIR_FS_CATALOG_IMAGES);
+        $store_logo->set_destination(DIR_FS_CATALOG_IMAGES.BUYSHOP_THEME.'/');
 
         if ($store_logo->parse()) {
           $store_logo->set_filename('store_logo.png');
@@ -59,7 +61,7 @@
         </table></td>
       </tr>
       <tr>
-        <td><?php echo tep_image(HTTP_CATALOG_SERVER . DIR_WS_CATALOG_IMAGES . 'store_logo.png'); ?></td>
+        <td><?php echo tep_image(HTTP_CATALOG_SERVER . DIR_WS_CATALOG_IMAGES .BUYSHOP_THEME. '/store_logo.png'); ?></td>
       </tr>
       <tr>
         <td><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
@@ -73,7 +75,8 @@
               <td class="smallText"><?php echo tep_draw_button(IMAGE_SAVE, 'disk', null, 'primary'); ?></td>
             </tr>
           </table>
-        </form></td>
+        </form>
+        </td>
       </tr>
       <tr>
         <td><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
@@ -85,7 +88,7 @@
         <td><?php echo tep_draw_separator('pixel_trans.gif', '1', '10'); ?></td>
       </tr>
       <tr>
-        <td class="main"><?php echo DIR_FS_CATALOG_IMAGES . 'store_logo.png'; ?></td>
+        <td class="main"><?php echo DIR_FS_CATALOG_IMAGES . BUYSHOP_THEME.'/store_logo.png'; ?></td>
       </tr>
     </table>
 

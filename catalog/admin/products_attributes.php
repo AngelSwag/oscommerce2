@@ -29,8 +29,11 @@
 
         for ($i=0, $n=sizeof($languages); $i<$n; $i ++) {
           $option_name = tep_db_prepare_input($option_name_array[$languages[$i]['id']]);
-
-          tep_db_query("insert into " . TABLE_PRODUCTS_OPTIONS . " (products_options_id, products_options_name, language_id) values ('" . (int)$products_options_id . "', '" . tep_db_input($option_name) . "', '" . (int)$languages[$i]['id'] . "')");
+//++++ QT Pro: Begin Changed code
+          $track_stock=isset($HTTP_POST_VARS['track_stock'])?1:0;
+          tep_db_query("insert into " . TABLE_PRODUCTS_OPTIONS . " (products_options_id, products_options_name, language_id,products_options_track_stock) values ('" . (int)$products_options_id . "', '" . tep_db_input($option_name) . "', '" . (int)$languages[$i]['id'] . "', '" . (int)$track_stock . "')");
+//++++ QT Pro: End Changed Code
+          //tep_db_query("insert into " . TABLE_PRODUCTS_OPTIONS . " (products_options_id, products_options_name, language_id) values ('" . (int)$products_options_id . "', '" . tep_db_input($option_name) . "', '" . (int)$languages[$i]['id'] . "')");
         }
         tep_redirect(tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, $page_info));
         break;
@@ -53,8 +56,16 @@
         $products_id = tep_db_prepare_input($HTTP_POST_VARS['products_id']);
         $options_id = tep_db_prepare_input($HTTP_POST_VARS['options_id']);
         $values_id = tep_db_prepare_input($HTTP_POST_VARS['values_id']);
+// BOF Attribute Product Codes V1.2
+		$code_suffix = tep_db_prepare_input($HTTP_POST_VARS['code_suffix']);
+        $suffix_sort_order = tep_db_prepare_input($HTTP_POST_VARS['suffix_sort_order']);
+// EOF Attribute Product Codes V1.2
         $value_price = tep_db_prepare_input($HTTP_POST_VARS['value_price']);
         $price_prefix = tep_db_prepare_input($HTTP_POST_VARS['price_prefix']);
+// BOF Attribute Product Codes V1.2
+//      tep_db_query("insert into " . TABLE_PRODUCTS_ATTRIBUTES . " values (null, '" . (int)$products_id . "', '" . (int)$options_id . "', '" . (int)$values_id . "', '" . (float)tep_db_input($value_price) . "', '" . tep_db_input($price_prefix) . "')");
+		tep_db_query("insert into " . TABLE_PRODUCTS_ATTRIBUTES . " values (null, '" . (int)$products_id . "', '" . (int)$options_id . "', '" . (int)$values_id . "', '" . tep_db_input($code_suffix) . "', '" . tep_db_input($suffix_sort_order) . "', '" . (float)tep_db_input($value_price) . "', '" . tep_db_input($price_prefix) . "', '" . tep_db_input($products_options_sort_order) . "')");
+// EOF Attribute Product Codes V1.2
 
         tep_db_query("insert into " . TABLE_PRODUCTS_ATTRIBUTES . " values (null, '" . (int)$products_id . "', '" . (int)$options_id . "', '" . (int)$values_id . "', '" . (float)tep_db_input($value_price) . "', '" . tep_db_input($price_prefix) . "')");
 
@@ -79,7 +90,11 @@
         for ($i=0, $n=sizeof($languages); $i<$n; $i ++) {
           $option_name = tep_db_prepare_input($option_name_array[$languages[$i]['id']]);
 
-          tep_db_query("update " . TABLE_PRODUCTS_OPTIONS . " set products_options_name = '" . tep_db_input($option_name) . "' where products_options_id = '" . (int)$option_id . "' and language_id = '" . (int)$languages[$i]['id'] . "'");
+		  //++++ QT Pro: Begin Changed code
+          $track_stock=isset($HTTP_POST_VARS['track_stock'])?1:0;
+          tep_db_query("update " . TABLE_PRODUCTS_OPTIONS . " set products_options_track_stock='" . (int)$track_stock . "',products_options_name = '" . tep_db_input($option_name) . "' where products_options_id = '" . (int)$option_id . "' and language_id = '" . (int)$languages[$i]['id'] . "'");
+		  //++++ QT Pro: End Changed Code
+          //tep_db_query("update " . TABLE_PRODUCTS_OPTIONS . " set products_options_name = '" . tep_db_input($option_name) . "' where products_options_id = '" . (int)$option_id . "' and language_id = '" . (int)$languages[$i]['id'] . "'");
         }
 
         tep_redirect(tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, $page_info));
@@ -103,9 +118,17 @@
         $products_id = tep_db_prepare_input($HTTP_POST_VARS['products_id']);
         $options_id = tep_db_prepare_input($HTTP_POST_VARS['options_id']);
         $values_id = tep_db_prepare_input($HTTP_POST_VARS['values_id']);
+// BOF Attribute Product Codes V1.2
+        $code_suffix = tep_db_prepare_input($HTTP_POST_VARS['code_suffix']);
+        $suffix_sort_order = tep_db_prepare_input($HTTP_POST_VARS['suffix_sort_order']);
+// EOF Attribute Product Codes V1.2
         $value_price = tep_db_prepare_input($HTTP_POST_VARS['value_price']);
         $price_prefix = tep_db_prepare_input($HTTP_POST_VARS['price_prefix']);
         $attribute_id = tep_db_prepare_input($HTTP_POST_VARS['attribute_id']);
+// BOF Attribute Product Codes V1.2
+//      tep_db_query("update " . TABLE_PRODUCTS_ATTRIBUTES . " set products_id = '" . (int)$products_id . "', options_id = '" . (int)$options_id . "', options_values_id = '" . (int)$values_id . "', options_values_price = '" . (float)tep_db_input($value_price) . "', price_prefix = '" . tep_db_input($price_prefix) . "' where products_attributes_id = '" . (int)$attribute_id . "'");
+        tep_db_query("update " . TABLE_PRODUCTS_ATTRIBUTES . " set products_id = '" . (int)$products_id . "', options_id = '" . (int)$options_id . "', options_values_id = '" . (int)$values_id . "', code_suffix = '" . tep_db_input($code_suffix) . "', suffix_sort_order = '" . tep_db_input($suffix_sort_order) . "', options_values_price = '" . (float)tep_db_input($value_price) . "', price_prefix = '" . tep_db_input($price_prefix) . "' where products_attributes_id = '" . (int)$attribute_id . "'");
+// EOF Attribute Product Codes V1.2
 
         tep_db_query("update " . TABLE_PRODUCTS_ATTRIBUTES . " set products_id = '" . (int)$products_id . "', options_id = '" . (int)$options_id . "', options_values_id = '" . (int)$values_id . "', options_values_price = '" . (float)tep_db_input($value_price) . "', price_prefix = '" . tep_db_input($price_prefix) . "' where products_attributes_id = '" . (int)$attribute_id . "'");
 
@@ -236,17 +259,36 @@
 ?>
                 </td>
               </tr>
-              <tr>
-                <td colspan="3"><?php echo tep_black_line(); ?></td>
+            <tr>
+	<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td colspan="4"><?php echo tep_black_line(); ?></td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
               </tr>
               <tr class="dataTableHeadingRow">
                 <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_ID; ?>&nbsp;</td>
                 <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_OPT_NAME; ?>&nbsp;</td>
+<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td class="dataTableHeadingContent"> <?php echo TABLE_HEADING_TRACK_STOCK; ?> </td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
                 <td class="dataTableHeadingContent" align="center">&nbsp;<?php echo TABLE_HEADING_ACTION; ?>&nbsp;</td>
               </tr>
               <tr>
-                <td colspan="3"><?php echo tep_black_line(); ?></td>
-              </tr>
+<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td colspan="4"><?php echo tep_black_line(); ?></td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
+            </tr>
 <?php
     $next_id = 1;
     $rows = 0;
@@ -267,6 +309,13 @@
 ?>
                 <td align="center" class="smallText">&nbsp;<?php echo $options_values['products_options_id']; ?><input type="hidden" name="option_id" value="<?php echo $options_values['products_options_id']; ?>">&nbsp;</td>
                 <td class="smallText"><?php echo $inputs; ?></td>
+<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td align="center" class="smallText"><input type=checkbox name=track_stock <?php echo $options_values['products_options_track_stock']?"checked":""; ?>></td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
                 <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_SAVE, 'disk', null, 'primary') . tep_draw_button(IMAGE_CANCEL, 'close', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, $page_info)); ?>&nbsp;</td>
 <?php
         echo '</form>' . "\n";
@@ -274,6 +323,13 @@
 ?>
                 <td align="center" class="smallText">&nbsp;<?php echo $options_values["products_options_id"]; ?>&nbsp;</td>
                 <td class="smallText">&nbsp;<?php echo $options_values["products_options_name"]; ?>&nbsp;</td>
+<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td align="center" class="smallText"> <?php echo $options_values['products_options_track_stock']?"Yes":"No"; ?></td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
                 <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=update_option&option_id=' . $options_values['products_options_id'] . '&' . $page_info)) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=delete_product_option&option_id=' . $options_values['products_options_id'] . '&' . $page_info)); ?>&nbsp;</td>
 <?php
       }
@@ -286,7 +342,13 @@
     }
 ?>
               <tr>
-                <td colspan="3"><?php echo tep_black_line(); ?></td>
+<?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td colspan="4"><?php echo tep_black_line(); ?></td>
+<?php
+//++++ QT Pro: End Changed Code
+?>
               </tr>
 <?php
     if ($action != 'update_option') {
@@ -301,13 +363,18 @@
 ?>
                 <td align="center" class="smallText">&nbsp;<?php echo $next_id; ?>&nbsp;</td>
                 <td class="smallText"><?php echo $inputs; ?></td>
-                <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_INSERT, 'plus'); ?>&nbsp;</td>
 <?php
+//++++ QT Pro: Begin Changed code
+?>
+                <td align="center" ><input type=checkbox name=track_stock></td>
+                <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_INSERT, 'plus'); //tep_image_submit('button_insert.gif', IMAGE_INSERT); ?>&nbsp;</td>
+<?php
+//++++ QT Pro: End Changed Code
       echo '</form>';
 ?>
               </tr>
               <tr>
-                <td colspan="3"><?php echo tep_black_line(); ?></td>
+                <td colspan=4"><?php echo tep_black_line(); ?></td>
               </tr>
 <?php
     }
@@ -531,13 +598,17 @@
         </table>
         <form name="attributes" action="<?php echo tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=' . $form_action . '&' . $page_info); ?>" method="post"><table border="0" width="100%" cellspacing="0" cellpadding="2">
           <tr>
-            <td colspan="7"><?php echo tep_black_line(); ?></td>
+            <td colspan="9"><?php echo tep_black_line(); ?></td>
           </tr>
           <tr class="dataTableHeadingRow">
             <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_ID; ?>&nbsp;</td>
             <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_PRODUCT; ?>&nbsp;</td>
             <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_OPT_NAME; ?>&nbsp;</td>
             <td class="dataTableHeadingContent">&nbsp;<?php echo TABLE_HEADING_OPT_VALUE; ?>&nbsp;</td>
+<!-- // BOF Attribute Product Codes V1.2 -->
+            <td class="dataTableHeadingContent" align="center">&nbsp;<?php echo TABLE_HEADING_OPT_CODE_SUFFIX; ?>&nbsp;</td>
+            <td class="dataTableHeadingContent" align="center">&nbsp;<?php echo TABLE_HEADING_OPT_CODE_ORDER; ?>&nbsp;</td>
+<!-- // EOF Attribute Product Codes V1.2 -->
             <td class="dataTableHeadingContent" align="right">&nbsp;<?php echo TABLE_HEADING_OPT_PRICE; ?>&nbsp;</td>
             <td class="dataTableHeadingContent" align="center">&nbsp;<?php echo TABLE_HEADING_OPT_PRICE_PREFIX; ?>&nbsp;</td>
             <td class="dataTableHeadingContent" align="center">&nbsp;<?php echo TABLE_HEADING_ACTION; ?>&nbsp;</td>
@@ -595,6 +666,10 @@
       } 
 ?>        
             </select>&nbsp;</td>
+<!-- // BOF Attribute Product Codes V1.2 -->
+            <td align="center" class="smallText">&nbsp;<input type="text" name="code_suffix" value="<?php echo $attributes_values['code_suffix']; ?>" size="6">&nbsp;</td>
+			<td align="center" class="smallText">&nbsp;<input type="text" name="suffix_sort_order" value="<?php echo $attributes_values['suffix_sort_order']; ?>" size="6">&nbsp;</td>
+<!-- // EOF Attribute Product Codes V1.2 -->
             <td align="right" class="smallText">&nbsp;<input type="text" name="value_price" value="<?php echo $attributes_values['options_values_price']; ?>" size="6">&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<input type="text" name="price_prefix" value="<?php echo $attributes_values['price_prefix']; ?>" size="2">&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_SAVE, 'disk', null, 'primary') . tep_draw_button(IMAGE_CANCEL, 'close', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, $page_info)); ?>&nbsp;</td>
@@ -638,6 +713,10 @@
             <td class="smallText">&nbsp;<strong><?php echo $products_name_only; ?></strong>&nbsp;</td>
             <td class="smallText">&nbsp;<strong><?php echo $options_name; ?></strong>&nbsp;</td>
             <td class="smallText">&nbsp;<strong><?php echo $values_name; ?></strong>&nbsp;</td>
+<!-- // BOF Attribute Product Codes V1.2 -->
+            <td align="center" class="smallText">&nbsp;<b><?php echo $attributes_values["code_suffix"]; ?></b>&nbsp;</td>
+            <td align="center" class="smallText">&nbsp;<b><?php echo $attributes_values["suffix_sort_order"]; ?></b>&nbsp;</td>
+<!-- // EOF Attribute Product Codes V1.2 -->
             <td align="right" class="smallText">&nbsp;<strong><?php echo $attributes_values["options_values_price"]; ?></strong>&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<strong><?php echo $attributes_values["price_prefix"]; ?></strong>&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=delete_attribute&attribute_id=' . $HTTP_GET_VARS['attribute_id'] . '&' . $page_info), 'primary') . tep_draw_button(IMAGE_CANCEL, 'close', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, $page_info)); ?>&nbsp;</td>
@@ -648,6 +727,10 @@
             <td class="smallText">&nbsp;<?php echo $products_name_only; ?>&nbsp;</td>
             <td class="smallText">&nbsp;<?php echo $options_name; ?>&nbsp;</td>
             <td class="smallText">&nbsp;<?php echo $values_name; ?>&nbsp;</td>
+<!-- // BOF Attribute Product Codes V1.2 -->
+            <td align="center" class="smallText">&nbsp;<?php echo $attributes_values["code_suffix"]; ?>&nbsp;</td>
+            <td align="center" class="smallText">&nbsp;<?php echo $attributes_values["suffix_sort_order"]; ?>&nbsp;</td>
+<!-- // EOF Attribute Product Codes V1.2 -->
             <td align="right" class="smallText">&nbsp;<?php echo $attributes_values["options_values_price"]; ?>&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<?php echo $attributes_values["price_prefix"]; ?>&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_EDIT, 'document', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=update_attribute&attribute_id=' . $attributes_values['products_attributes_id'] . '&' . $page_info)) . tep_draw_button(IMAGE_DELETE, 'trash', tep_href_link(FILENAME_PRODUCTS_ATTRIBUTES, 'action=delete_product_attribute&attribute_id=' . $attributes_values['products_attributes_id'] . '&' . $page_info)); ?>&nbsp;</td>
@@ -663,7 +746,7 @@
   if ($action != 'update_attribute') {
 ?>
           <tr>
-            <td colspan="7"><?php echo tep_black_line(); ?></td>
+            <td colspan="9"><?php echo tep_black_line(); ?></td>
           </tr>
           <tr class="<?php echo (floor($rows/2) == ($rows/2) ? 'attributes-even' : 'attributes-odd'); ?>">
             <td class="smallText">&nbsp;<?php echo $next_id; ?>&nbsp;</td>
@@ -690,7 +773,11 @@
       echo '<option name="' . $values_values['products_options_values_name'] . '" value="' . $values_values['products_options_values_id'] . '">' . $values_values['products_options_values_name'] . '</option>';
     } 
 ?>
-            </select>&nbsp;</td>
+            </select>&nbsp;</td
+<!-- // BOF Attribute Product Codes V1.2 -->
+            <td align="center" class="smallText">&nbsp;<input type="text" name="code_suffix" size="6">&nbsp;</td>
+			<td align="center" class="smallText">&nbsp;<input type="text" name="suffix_sort_order" size="6">&nbsp;</td>
+<!-- // EOF Attribute Product Codes V1.2 -->
             <td align="right" class="smallText">&nbsp;<input type="text" name="value_price" size="6">&nbsp;</td>
             <td align="right" class="smallText">&nbsp;<input type="text" name="price_prefix" size="2" value="+">&nbsp;</td>
             <td align="center" class="smallText">&nbsp;<?php echo tep_draw_button(IMAGE_INSERT, 'plus'); ?>&nbsp;</td>
@@ -724,7 +811,7 @@
   }
 ?>
           <tr>
-            <td colspan="7"><?php echo tep_black_line(); ?></td>
+            <td colspan="9"><?php echo tep_black_line(); ?></td>
           </tr>
         </table></form></td>
       </tr>

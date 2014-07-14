@@ -23,6 +23,16 @@
         'title' => BOX_REPORTS_PRODUCTS_PURCHASED,
         'link' => tep_href_link(FILENAME_STATS_PRODUCTS_PURCHASED)
       ),
+	  array(
+        'code' => FILENAME_STATS_LOW_STOCK_ATTRIB,
+        'title' => BOX_REPORTS_STATS_LOW_STOCK_ATTRIB,
+        'link' => tep_href_link(FILENAME_STATS_LOW_STOCK_ATTRIB)
+      ),
+	  array(
+	    'code' => FILENAME_STATS_KEYWORDS_SEARCHED,
+		'title' => BOX_REPORTS_KEYWORDS_SEARCHED,
+		'link' => tep_href_link(FILENAME_STATS_KEYWORDS_SEARCHED)
+      ),
       array(
         'code' => FILENAME_STATS_CUSTOMERS,
         'title' => BOX_REPORTS_ORDERS_TOTAL,
