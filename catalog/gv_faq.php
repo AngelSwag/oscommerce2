@@ -31,8 +31,6 @@
      <p class="main"><?php echo SUB_HEADING_TEXT; ?></p>
     </div> 
 
-
-
   <div class="buttonSet">
     <span class="buttonAction"><?php echo tep_draw_button(IMAGE_BUTTON_CONTINUE, 'triangle-1-e', tep_href_link(FILENAME_DEFAULT)); ?></span>
   </div>

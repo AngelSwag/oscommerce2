@@ -41,7 +41,16 @@
   if ( tep_session_is_registered('comments') ) {
     tep_session_unregister('comments');
   }
-
+// CCGV START
+  if ( tep_session_is_registered('gv_id') ) {
+    tep_session_unregister('gv_id');
+  }
+  
+  if ( tep_session_is_registered('cc_id') ) {
+    tep_session_unregister('cc_id');
+  }
+// CCGV END
+  
   $cart->reset();
 
   require(DIR_WS_INCLUDES . 'template_top.php');

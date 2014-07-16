@@ -34,20 +34,20 @@ if (($HTTP_POST_VARS['back_x']) || ($HTTP_POST_VARS['back_y'])) {
     $gv_result = tep_db_fetch_array($gv_query);
     $customer_amount = $gv_result['amount'];
     $gv_amount = trim($HTTP_POST_VARS['amount']);
-    // if (preg_match('/^0-9/', $gv_amount)) {
-      // $error = true;
-      // $error_amount = ERROR_ENTRY_AMOUNT_CHECK; 
-    // }
-    // if ($gv_amount>$customer_amount || $gv_amount == 0) {
-      // $error = true; 
-      // $error_amount = ERROR_ENTRY_AMOUNT_CHECK; 
-    // } 
+    if (preg_match('/^0-9/', $gv_amount)) {
+      $error = true;
+      $error_amount = ERROR_ENTRY_AMOUNT_CHECK; 
+    }
+    if ($gv_amount>$customer_amount || $gv_amount == 0) {
+      $error = true; 
+      $error_amount = ERROR_ENTRY_AMOUNT_CHECK; 
+    } 
   }
   if ($HTTP_GET_VARS['action'] == 'process') {
     $id1 = create_coupon_code($mail['customers_email_address']);
     $gv_query = tep_db_query("select amount from " . TABLE_COUPON_GV_CUSTOMER . " where customer_id='".$customer_id."'");
     $gv_result = tep_db_fetch_array($gv_query);
-    $new_amount = 10;//$gv_result['amount'] - $HTTP_POST_VARS['amount'];
+    $new_amount = $gv_result['amount'] - $HTTP_POST_VARS['amount'];
     if ($new_amount < 0) {
       $error= true;
       $error_amount = ERROR_ENTRY_AMOUNT_CHECK; 
@@ -109,7 +109,7 @@ if (($HTTP_POST_VARS['back_x']) || ($HTTP_POST_VARS['back_y'])) {
 ?>
 
 <?php
-var_dump($error);
+
   if ($HTTP_GET_VARS['action'] == 'send' && !$error) {
     // validate entries
       $gv_amount = (double) $gv_amount;
@@ -117,7 +117,7 @@ var_dump($error);
       $gv_result = tep_db_fetch_array($gv_query);
       $send_name = $gv_result['customers_firstname'] . ' ' . $gv_result['customers_lastname'];
 
-	  echo tep_draw_form('gv_send', tep_href_link(FILENAME_GV_SEND, 'action=process'), 'post', '', true);
+	  echo tep_draw_form('gv_send', tep_href_link(FILENAME_GV_SEND, 'action=success'), 'post', '', true);
 	  
 ?>
 

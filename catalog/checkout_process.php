@@ -43,6 +43,7 @@
 
 // load selected payment module
   require(DIR_WS_CLASSES . 'payment.php');
+  if ($credit_covers) $payment=''; // CCGV
   $payment_modules = new payment($payment);
 
 // load the selected shipping module
@@ -141,6 +142,8 @@
 
 // initialized for the email confirmation
   $products_ordered = '';
+  $subtotal = 0; //CCGV
+  $total_tax = 0; // CCGV
 
   for ($i=0, $n=sizeof($order->products); $i<$n; $i++) {
 // Stock Update - Joao Correia
@@ -236,6 +239,7 @@
 							
     tep_db_perform(TABLE_ORDERS_PRODUCTS, $sql_data_array);
     $order_products_id = tep_db_insert_id();
+	$order_total_modules->update_credit_account($i);// CCGV
 
 //------insert customer choosen option to order--------
     $attributes_exist = '0';
@@ -281,14 +285,22 @@
       }
     }
 //------insert customer choosen option eof ----
+
+
+    // CCGV BOF
+    $total_weight += ($order->products[$i]['qty'] * $order->products[$i]['weight']);
+    $total_tax += tep_calculate_tax($total_products_price, $products_tax) * $order->products[$i]['qty'];
+    $total_cost += $total_products_price;
+    // CCGV EOF
     
 // BOF Attribute Product Codes V1.2
     //$products_ordered .= $order->products[$i]['qty'] . ' x ' . $order->products[$i]['name'] . ' (' . $order->products[$i]['model'] . ') = ' . $currencies->display_price($order->products[$i]['final_price'], $order->products[$i]['tax'], $order->products[$i]['qty']) . $products_ordered_attributes . "\n";
 	$products_ordered .= $order->products[$i]['qty'] . ' x ' . $order->products[$i]['name'] . ' (' . $order->products[$i]['code'] . ') = ' . $currencies->display_price($order->products[$i]['final_price'], $order->products[$i]['tax'], $order->products[$i]['qty']) . $products_ordered_attributes . "\n";
 // EOF Attribute Product Codes V1.2
-
 	}
 
+	$order_total_modules->apply_credit(); // CCGV
+	
 // lets start with the email confirmation
   $email_order = STORE_NAME . "\n" . 
                  EMAIL_SEPARATOR . "\n" . 
@@ -344,6 +356,9 @@
   tep_session_unregister('payment');
   tep_session_unregister('comments');
 
+   if(tep_session_is_registered('credit_covers')) tep_session_unregister('credit_covers');// CCGV
+  $order_total_modules->clear_posts();// CCGV  
+  
   // MOD: BOF - SmartSuggest BEGIN
   if (SMARTSUGGEST_ENABLED == 'true' && SMARTSUGGEST_RECORD_KEYWORDS == 'true') {
     if (tep_session_is_registered('searched_keywords_id')) {

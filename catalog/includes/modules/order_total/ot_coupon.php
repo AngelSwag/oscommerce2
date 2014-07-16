@@ -73,15 +73,10 @@ function use_credit_amount() {
 
 
 function credit_selection() {
-global $customer_id, $currencies, $language;
-	$selection_string = '';
-	$selection_string .= '<tr>' . "\n";
-	$selection_string .= ' <td width="10">' . tep_draw_separator('pixel_trans.gif', '10', '1') .'</td>';
-	$selection_string .= ' <td class="main">' . "\n";
-	$selection_string .= TEXT_ENTER_COUPON_CODE . tep_draw_input_field('gv_redeem_code') . '</td>';
-	$selection_string .= ' <td align="right"> </td>';
-	$selection_string .= ' <td width="10">' . tep_draw_separator('pixel_trans.gif', '10', '1') . '</td>';
-	$selection_string .= '</tr>' . "\n";
+	global $language;
+	
+	$selection_string = TEXT_ENTER_COUPON_CODE . tep_draw_input_field('gv_redeem_code');
+	
 	return $selection_string;
 }
 

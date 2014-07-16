@@ -32,7 +32,11 @@
 			$gv_query=tep_db_query("select amount from " . TABLE_COUPON_GV_CUSTOMER . " where customer_id='".$customer_id."'");
 			if ($gv_result=tep_db_fetch_array($gv_query)) {
 				if ($gv_result['amount'] > 0) {
-					$cs_data = GV_HAS_VOUCHERA.tep_href_link(FILENAME_GV_SEND).GV_HAS_VOUCHERB;
+				
+					$cs_data = '<div id="cs-gift-voucher" class="ui-widget infoBoxContainer">' .
+							   '  <div class="ui-widget-header infoBoxHeading">' . MODULE_CHECKOUT_SUCCESS_GIFT_VOUCHER_TITLE . '</div>' .
+							   '  <div class="ui-widget-content infoBoxContents">' . GV_HAS_VOUCHERA.tep_href_link(FILENAME_GV_SEND).GV_HAS_VOUCHERB .'</div>' .
+								'</div>';
 					$oscTemplate->addBlock($cs_data, $this->group);
 				}
 			}

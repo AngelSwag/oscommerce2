@@ -45,14 +45,21 @@
 
 // load the selected payment module
   require(DIR_WS_CLASSES . 'payment.php');
+  if ($credit_covers) $payment=''; // CCGV  
   $payment_modules = new payment($payment);
-
+  require(DIR_WS_CLASSES . 'order_total.php');// CCGV
+  
   require(DIR_WS_CLASSES . 'order.php');
   $order = new order;
 
   $payment_modules->update_status();
+  $order_total_modules = new order_total;// CCGV
+  $order_total_modules->collect_posts();// CCGV
+  $order_total_modules->pre_confirmation_check();//  CCGV
 
-  if ( ($payment_modules->selected_module != $payment) || ( is_array($payment_modules->modules) && (sizeof($payment_modules->modules) > 1) && !is_object($$payment) ) || (is_object($$payment) && ($$payment->enabled == false)) ) {
+  // CCGV
+  //if ( ($payment_modules->selected_module != $payment) || ( is_array($payment_modules->modules) && (sizeof($payment_modules->modules) > 1) && !is_object($$payment) ) || (is_object($$payment) && ($$payment->enabled == false)) ) {
+  if ( ($payment_modules->selected_module != $payment) || ( is_array($payment_modules->modules) && (sizeof($payment_modules->modules) > 1) && !is_object($$payment) ) && (!$credit_covers) ) {
     tep_redirect(tep_href_link(FILENAME_CHECKOUT_PAYMENT, 'error_message=' . urlencode(ERROR_NO_PAYMENT_MODULE_SELECTED), 'SSL'));
   }
 
@@ -64,8 +71,9 @@
   require(DIR_WS_CLASSES . 'shipping.php');
   $shipping_modules = new shipping($shipping);
 
-  require(DIR_WS_CLASSES . 'order_total.php');
-  $order_total_modules = new order_total;
+  //Lines below repositioned for CCGV
+  //require(DIR_WS_CLASSES . 'order_total.php');
+  //$order_total_modules = new order_total;
   $order_total_modules->process();
 
 // Stock Check
@@ -236,7 +244,9 @@
 
 <?php
   if (MODULE_ORDER_TOTAL_INSTALLED) {
-    echo $order_total_modules->output();
+    // CCGV
+	//echo $order_total_modules->output();
+	echo $order_total_modules->output();
   }
 ?>
 

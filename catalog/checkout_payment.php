@@ -35,6 +35,10 @@
     }
   }
 
+  // CCGV: if we have been here before and are coming back get rid of the credit covers variable
+  if(tep_session_is_registered('credit_covers')) tep_session_unregister('credit_covers');  //CCGV
+  if (tep_session_is_registered('cot_gv')) tep_session_unregister('cot_gv');  //added to reset whether a gift voucher is used or not on this order
+  
   // Stock Check
 //++++ QT Pro: Begin Changed code
   // if ( (STOCK_CHECK == 'true') && (STOCK_ALLOW_CHECKOUT != 'true') ) {
@@ -85,6 +89,9 @@
   require(DIR_WS_CLASSES . 'order.php');
   $order = new order;
 
+  require(DIR_WS_CLASSES . 'order_total.php'); // CCGV
+  $order_total_modules = new order_total; // CCGV
+  
   if (!tep_session_is_registered('comments')) tep_session_register('comments');
   if (isset($HTTP_POST_VARS['comments']) && tep_not_null($HTTP_POST_VARS['comments'])) {
     $comments = tep_db_prepare_input($HTTP_POST_VARS['comments']);
@@ -92,6 +99,7 @@
 
   $total_weight = $cart->show_weight();
   $total_count = $cart->count_contents();
+  $total_count = $cart->count_contents_virtual(); // CCGV 
 
 // load all enabled payment modules
   require(DIR_WS_CLASSES . 'payment.php');
@@ -104,6 +112,15 @@
 
   require(DIR_WS_INCLUDES . 'template_top.php');
 ?>
+<?php /* following jscript function ADDED FOR CCGV */ ?>
+<script language="text/javascript"><!--
+var selected;
+var submitter = null;
+function submitFunction() {
+   submitter = 1;
+   }
+//--></script>
+<?php /* END OF ADDED FOR CCGV */ ?>
 
 <script type="text/javascript"><!--
 var selected;
@@ -275,7 +292,9 @@ function rowOutEffect(object) {
     $radio_buttons++;
   }
 ?>
-
+<?php
+  echo $order_total_modules->credit_selection(); // CCGV
+?>
   </div>
 
   <h2><?php echo TABLE_HEADING_COMMENTS; ?></h2>
